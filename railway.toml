@@ -1,0 +1,18 @@
+# Railway service config for the prototype template.
+#
+# Single service: Django serves the API at /api/* and the built React bundle
+# at /. Postgres is provisioned as a Railway plugin (add via `railway add`);
+# DATABASE_URL is auto-injected into this service.
+#
+# The Postgres plugin reference itself is created at deploy time, not via this
+# file — Railway's TOML schema doesn't declare plugins inline. See NEXT-STEPS.md
+# for the `railway add` command.
+
+[build]
+builder = "NIXPACKS"
+buildCommand = "cd frontend && npm ci && npm run build && cd ../backend && uv sync --frozen && uv run python manage.py migrate --noinput && uv run python manage.py collectstatic --noinput"
+
+[deploy]
+startCommand = "cd backend && uv run gunicorn config.wsgi:application --bind 0.0.0.0:$PORT"
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
