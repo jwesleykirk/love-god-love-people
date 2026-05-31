@@ -20,6 +20,8 @@ class PropertyDefViewSet(viewsets.ModelViewSet):
         status_filter = self.request.query_params.get("status")
         if status_filter:
             qs = qs.filter(status=status_filter)
+        if self.request.query_params.get("needs_review") in ("1", "true"):
+            qs = qs.filter(status=PropertyDefStatus.ACTIVE, reviewed_at__isnull=True)
         return qs
 
     def perform_create(self, serializer):
@@ -31,6 +33,14 @@ class PropertyDefViewSet(viewsets.ModelViewSet):
         pdef.status = PropertyDefStatus.ARCHIVED
         pdef.reviewed_at = timezone.now()
         pdef.save(update_fields=["status", "reviewed_at"])
+        return Response(PropertyDefSerializer(pdef).data)
+
+    @action(detail=True, methods=["post"])
+    def keep(self, request, pk=None):
+        """Mark this AI-proposed PropertyDef as reviewed and kept (no change)."""
+        pdef = self.get_object()
+        pdef.reviewed_at = timezone.now()
+        pdef.save(update_fields=["reviewed_at"])
         return Response(PropertyDefSerializer(pdef).data)
 
     @action(detail=True, methods=["post"])
