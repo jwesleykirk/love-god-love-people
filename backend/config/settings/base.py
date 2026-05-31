@@ -61,6 +61,8 @@ INSTALLED_APPS = [
     "apps.properties",
     "apps.extraction",
     "apps.review",
+    "apps.orgs",
+    "apps.associations",
     "apps.future",
 ]
 

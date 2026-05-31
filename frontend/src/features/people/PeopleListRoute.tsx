@@ -1,14 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { listPeople, type Person, type RelationshipCategory } from "./api";
+import { listPeople, RELATIONSHIP_CATEGORIES, type Person, type RelationshipCategory } from "./api";
 import { listEntries, type JournalEntry } from "../entries/api";
 
-const CATEGORIES: Array<{ value: RelationshipCategory | ""; label: string }> = [
+const FILTERS: Array<{ value: RelationshipCategory | ""; label: string }> = [
   { value: "", label: "All" },
-  { value: "friend", label: "Friends" },
-  { value: "family", label: "Family" },
-  { value: "bridge_student", label: "Bridge students" },
-  { value: "other", label: "Other" },
+  ...RELATIONSHIP_CATEGORIES,
 ];
 
 const POLL_MS = 5000;
@@ -38,11 +35,9 @@ export default function PeopleListRoute() {
     return () => { cancelled = true; };
   }, [q, category]);
 
-  // Recent entries — poll while any are in-flight.
   useEffect(() => {
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout> | null = null;
-
     async function pull() {
       try {
         const resp = await listEntries();
@@ -55,16 +50,10 @@ export default function PeopleListRoute() {
         if (anyInFlight) {
           timer = setTimeout(pull, POLL_MS);
         }
-      } catch {
-        // silent — don't break the page if entries can't be fetched
-      }
+      } catch { /* silent */ }
     }
-
     void pull();
-    return () => {
-      cancelled = true;
-      if (timer) clearTimeout(timer);
-    };
+    return () => { cancelled = true; if (timer) clearTimeout(timer); };
   }, []);
 
   return (
@@ -73,16 +62,13 @@ export default function PeopleListRoute() {
         <h1 style={{ margin: 0 }}>People</h1>
         <Link to="/people/new">+ Add person</Link>
       </div>
-
       <div className="row stack" style={{ marginTop: "1rem", gap: "0.5rem" }}>
         <input placeholder="Search by name…" value={q} onChange={(e) => setQ(e.target.value)} />
         <select value={category} onChange={(e) => setCategory(e.target.value as RelationshipCategory | "")}>
-          {CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
+          {FILTERS.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
         </select>
       </div>
-
       {error && <p style={{ color: "crimson" }}>{error}</p>}
-
       {people.length === 0 ? (
         <p className="muted" style={{ marginTop: "2rem" }}>
           No people yet. <Link to="/people/new">Add your first person</Link>.
@@ -91,12 +77,9 @@ export default function PeopleListRoute() {
         <ul className="bare" style={{ marginTop: "1rem" }}>
           {people.map((p) => (
             <li key={p.id}>
-              <Link to={`/people/${p.id}`}>
-                <strong>{p.preferred_name || p.full_name}</strong>
-              </Link>
-              <span className="pill" style={{ marginLeft: "0.5rem" }}>
-                {p.relationship_category.replace("_", " ")}
-              </span>
+              <Link to={`/people/${p.id}`}><strong>{p.preferred_name || p.full_name}</strong></Link>
+              <span className="pill" style={{ marginLeft: "0.5rem" }}>{p.relationship_category}</span>
+              {p.life_stage && <span className="pill" style={{ marginLeft: "0.3rem" }}>{p.life_stage.replace("_", " ")}</span>}
             </li>
           ))}
         </ul>

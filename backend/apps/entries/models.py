@@ -1,4 +1,4 @@
-"""JournalEntry and the PersonJournalEntry join."""
+"""JournalEntry tagged to people AND/OR organizations (v0.2)."""
 from django.conf import settings
 from django.db import models
 
@@ -14,6 +14,11 @@ class JournalEntry(models.Model):
     persons = models.ManyToManyField(
         "people.Person",
         through="entries.PersonJournalEntry",
+        related_name="entries",
+    )
+    organizations = models.ManyToManyField(
+        "orgs.Organization",
+        through="entries.OrganizationJournalEntry",
         related_name="entries",
     )
     extraction_status = models.CharField(
@@ -48,3 +53,11 @@ class PersonJournalEntry(models.Model):
 
     class Meta:
         unique_together = [("person", "entry")]
+
+
+class OrganizationJournalEntry(models.Model):
+    organization = models.ForeignKey("orgs.Organization", on_delete=models.CASCADE)
+    entry = models.ForeignKey(JournalEntry, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = [("organization", "entry")]

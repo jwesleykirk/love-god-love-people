@@ -7,12 +7,12 @@ export type JournalEntry = {
   content_markdown: string;
   mood_tag: string;
   person_id_list: number[];
+  organization_id_list: number[];
   extraction_status: ExtractionStatus;
   extraction_error: string;
   created_at: string;
   updated_at: string;
 };
-
 export type EntryList = {
   count: number;
   next: string | null;
@@ -20,14 +20,19 @@ export type EntryList = {
   results: JournalEntry[];
 };
 
-export function listEntries(params: { personId?: number } = {}) {
+export function listEntries(params: { personId?: number; orgId?: number } = {}) {
   const qs = new URLSearchParams();
   if (params.personId) qs.set("person_id", String(params.personId));
+  if (params.orgId) qs.set("organization_id", String(params.orgId));
   const tail = qs.toString();
   return apiFetch<EntryList>(`/api/entries/${tail ? `?${tail}` : ""}`);
 }
 
-export function createEntry(data: { content_markdown: string; person_ids: number[] }) {
+export function createEntry(data: {
+  content_markdown: string;
+  person_ids: number[];
+  organization_ids: number[];
+}) {
   return apiFetch<JournalEntry>("/api/entries/", { method: "POST", body: data });
 }
 

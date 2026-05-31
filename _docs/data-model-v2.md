@@ -305,3 +305,19 @@ Once you've answered, I'll write the migrations + the updated extraction prompt 
 - RELATIONSHIP vocabulary (Ian Davis, Eric Vitiello Jr) — [vocab.org/relationship/](https://vocab.org/relationship/)
 - Folk CRM — [Top 5 Personal CRMs](https://www.folk.app/articles/personal-crm-guide)
 - Ackee — [Hierarchical models in PostgreSQL](https://www.ackee.agency/blog/hierarchical-models-in-postgresql)
+
+---
+
+## DECISIONS LOCKED (2026-05-31, with Wesley)
+
+1. **`Person.relationship_category` enum (final):** `family / friend / work / neighbor / ministry / other`. Dropped `bridge_student` — properly expressed via `OrganizationMembership(person, organization=Bridge, role="student")`. Don't duplicate facts.
+2. **`AssociationType` seeded list (final):** drop `colleague_of`, `co_small_group_member`, `acquaintance_of` — all recoverable from `OrganizationMembership`. Final list:
+   - **love:** spouse_of, engaged_to, dating, ex_spouse_of
+   - **family:** parent_of/child_of, sibling_of, grandparent_of/grandchild_of, in_law_of, step_parent_of/step_child_of
+   - **friend:** close_friend_of, friend_of, neighbor_of
+   - **work:** manages/reports_to, mentor_of/mentee_of
+   - **ministry:** disciples/discipled_by
+3. **`Household` as `OrgType`** — shipping. Justified by the low-friction-journaling goal: tagging "the Kirks" lowers friction vs. tagging three separate people.
+4. **`OrganizationProperty` (EAV for orgs)** — deferred to a later version. Most org facts are first-class fields.
+5. **`Person.life_stage`** — optional field. Not required.
+6. **`Person.deceased_at`** added (nullable date). Pastoral context, prompt scoping, prayer-cadence respect.

@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import JournalEntry, PersonJournalEntry
+from .models import JournalEntry, OrganizationJournalEntry, PersonJournalEntry
 
 
 @admin.register(JournalEntry)
@@ -11,3 +11,4 @@ class JournalEntryAdmin(admin.ModelAdmin):
 
 
 admin.site.register(PersonJournalEntry)
+admin.site.register(OrganizationJournalEntry)

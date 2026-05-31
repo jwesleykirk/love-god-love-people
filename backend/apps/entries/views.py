@@ -13,8 +13,6 @@ logger = logging.getLogger(__name__)
 
 
 class JournalEntryViewSet(viewsets.ModelViewSet):
-    """CRUD for JournalEntry. POST triggers async extraction."""
-
     serializer_class = JournalEntrySerializer
 
     def get_queryset(self):
@@ -22,6 +20,9 @@ class JournalEntryViewSet(viewsets.ModelViewSet):
         person_id = self.request.query_params.get("person_id")
         if person_id:
             qs = qs.filter(persons__id=person_id)
+        organization_id = self.request.query_params.get("organization_id")
+        if organization_id:
+            qs = qs.filter(organizations__id=organization_id)
         return qs.distinct()
 
     def perform_create(self, serializer):
@@ -36,7 +37,7 @@ class JournalEntryViewSet(viewsets.ModelViewSet):
             return
         try:
             async_task("apps.extraction.tasks.run_extraction", entry.pk)
-        except Exception as exc:  # pragma: no cover - defensive
+        except Exception as exc:  # pragma: no cover
             logger.exception("failed to enqueue extraction for entry %s", entry.pk)
             entry.extraction_status = "error"
             entry.extraction_error = f"enqueue failed: {exc}"
