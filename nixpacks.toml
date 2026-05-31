@@ -1,0 +1,25 @@
+# Nixpacks needs explicit help here because:
+# 1) package.json lives in frontend/, not at the repo root, so the Node
+#    auto-detector doesn't run.
+# 2) uv isn't part of the default Python provider — we install it explicitly.
+providers = ['python']
+
+[phases.setup]
+nixPkgs = ['python312', 'nodejs_20', 'gcc']
+aptPkgs = ['libpq-dev']
+
+[phases.install]
+# Install uv as a single static binary into ~/.local/bin
+cmds = [
+  'curl -LsSf https://astral.sh/uv/install.sh | sh',
+]
+
+[phases.build]
+cmds = [
+  'cd frontend && npm ci && npm run build',
+  'cd backend && /root/.local/bin/uv sync --frozen',
+  'cd backend && /root/.local/bin/uv run python manage.py collectstatic --noinput',
+]
+
+[start]
+cmd = "cd backend && /root/.local/bin/uv run python manage.py migrate --noinput && (/root/.local/bin/uv run python manage.py qcluster &) && /root/.local/bin/uv run gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 60"
