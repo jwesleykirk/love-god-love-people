@@ -6,7 +6,7 @@ import path from "node:path";
 // to Django on http://localhost:8000.
 // Build: writes the production bundle to frontend/dist/.
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react()],  base: '/static/',
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
