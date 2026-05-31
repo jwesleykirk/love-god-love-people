@@ -1,18 +1,20 @@
 [project]
-name = "s3-prototype-template-backend"
+name = "love-god-love-people-backend"
 version = "0.1.0"
-description = "S3 prototype template — Django backend"
+description = "Personal CRM — Django backend"
 readme = "../README.md"
 requires-python = ">=3.12"
 dependencies = [
     "django>=5.1,<6.0",
+    "djangorestframework>=3.15",
+    "django-cors-headers>=4.4",
     "psycopg[binary]>=3.2",
     "django-environ>=0.11",
     "django-q2>=1.7",
+    "django-allauth[socialaccount]>=65.0",
     "requests>=2.32",
     "gunicorn>=23.0",
     "whitenoise>=6.7",
-    "mozilla-django-oidc>=4.0",
 ]
 
 [tool.uv]

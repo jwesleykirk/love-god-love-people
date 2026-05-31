@@ -1,30 +1,37 @@
 import { Link, Route, Routes } from "react-router-dom";
 
-import { exampleRoutes } from "./features/example/routes";
+import { peopleRoutes } from "./features/people/routes";
+import { entriesRoutes } from "./features/entries/routes";
+import { reviewRoutes } from "./features/review/routes";
+import { AuthGate } from "./features/auth/AuthGate";
+import { useAuth } from "./features/auth/AuthProvider";
 
-function Home() {
+function AppHeader() {
+  const { auth, logout } = useAuth();
   return (
-    <main className="container">
-      <h1>S3 Prototype Template</h1>
-      <p>
-        This is the SPA shell. Each feature lives under{" "}
-        <code>src/features/&lt;feature&gt;/</code> and registers its routes in
-        the array below.
-      </p>
-      <ul>
-        <li>
-          <Link to="/example">/example — sample feature</Link>
-        </li>
-      </ul>
-    </main>
+    <header className="app">
+      <Link to="/" className="brand">Love God, Love People</Link>
+      <nav>
+        <Link to="/">People</Link>
+        <Link to="/entries/new">+ Entry</Link>
+        <Link to="/review">Review</Link>
+        {auth?.authenticated && auth.auth_enabled && (
+          <a href="#" onClick={(e) => { e.preventDefault(); logout(); }}>Sign out</a>
+        )}
+      </nav>
+    </header>
   );
 }
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/" element={<Home />} />
-      {exampleRoutes}
-    </Routes>
+    <AuthGate>
+      <AppHeader />
+      <Routes>
+        {peopleRoutes}
+        {entriesRoutes}
+        {reviewRoutes}
+      </Routes>
+    </AuthGate>
   );
 }

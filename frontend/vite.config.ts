@@ -1,16 +1,17 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import path from "node:path";
 
-// https://vitejs.dev/config/
-//
-// Dev: Vite serves the SPA on http://localhost:5173 and proxies /api/* to
-// Django on http://localhost:8000 so the same fetch("/api/example/") works
-// in dev and in prod (where Django serves both API and SPA).
-//
-// Build: writes the production bundle to frontend/dist/. Django reads from
-// that path via STATICFILES_DIRS + TEMPLATES.DIRS (see backend/config/settings/base.py).
+// Dev: Vite serves the SPA on http://localhost:5173 and proxies /api/* + /accounts/*
+// to Django on http://localhost:8000.
+// Build: writes the production bundle to frontend/dist/.
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
+  },
   build: {
     outDir: "dist",
     emptyOutDir: true,
@@ -18,10 +19,8 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      "/api": {
-        target: "http://localhost:8000",
-        changeOrigin: true,
-      },
+      "/api": { target: "http://localhost:8000", changeOrigin: true },
+      "/accounts": { target: "http://localhost:8000", changeOrigin: true },
     },
   },
 });

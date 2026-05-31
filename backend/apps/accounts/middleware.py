@@ -1,29 +1,31 @@
-"""
-Auth middleware placeholder for Microsoft Entra OIDC.
+"""Auth feature-flag middleware.
 
-CONFIGURE ME — currently a no-op pass-through. The real wire-up uses
-mozilla_django_oidc, which provides its own middleware/auth backend.
-That config lives (commented) in config/settings/base.py.
+When ENABLE_AUTH is False, every request is auto-logged-in as the fixture
+user (`FIXTURE_USER_EMAIL`, default `wesley@local`). This lets the app run
+end-to-end without any OAuth credentials — useful for the very first
+Railway deploy and for local exploration.
 
-This module exists as the *project-specific* extension point: if you need
-to enforce auth on /api/ before mozilla_django_oidc's views run, or to
-attach Entra group claims to request.user, do it here.
-
-Reference: https://mozilla-django-oidc.readthedocs.io/en/stable/
+When ENABLE_AUTH is True, this middleware is a no-op and django-allauth
+takes over.
 """
 from collections.abc import Callable
 
+from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.http import HttpRequest, HttpResponse
 
 
-class EntraAuthMiddleware:
-    """No-op placeholder. Wire up real Entra enforcement here."""
-
+class FixtureUserMiddleware:
     def __init__(self, get_response: Callable[[HttpRequest], HttpResponse]):
         self.get_response = get_response
 
     def __call__(self, request: HttpRequest) -> HttpResponse:
-        # CONFIGURE ME: reject unauthenticated /api/ requests once OIDC is live.
-        # if request.path.startswith("/api/") and not request.user.is_authenticated:
-        #     return JsonResponse({"error": "unauthenticated"}, status=401)
+        if not getattr(settings, "ENABLE_AUTH", False):
+            User = get_user_model()
+            email = getattr(settings, "FIXTURE_USER_EMAIL", "wesley@local")
+            user, _ = User.objects.get_or_create(
+                username=email,
+                defaults={"email": email, "first_name": "Wesley"},
+            )
+            request.user = user
         return self.get_response(request)

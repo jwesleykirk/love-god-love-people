@@ -1,12 +1,10 @@
 /**
  * Shared API client.
  *
- * Per the S3 New App Playbook (section 6, "React: one feature, one folder"),
- * every feature's `api.ts` calls through this client — not `fetch` directly.
- * That gives one place to attach the Entra bearer token, normalize errors,
- * and switch transports later if needed.
+ * Every feature's api.ts calls through this — never `fetch` directly. That
+ * gives one place to handle auth redirects, attach CSRF tokens, and normalize
+ * errors.
  */
-
 export class ApiError extends Error {
   constructor(
     public readonly status: number,
@@ -23,44 +21,43 @@ type Options = Omit<RequestInit, "body" | "headers"> & {
   headers?: Record<string, string>;
 };
 
+function getCsrfToken(): string {
+  const m = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
+  return m ? decodeURIComponent(m[1]) : "";
+}
+
 export async function apiFetch<T = unknown>(
   path: string,
   options: Options = {},
 ): Promise<T> {
-  const { body, headers = {}, ...rest } = options;
+  const { body, headers = {}, method = "GET", ...rest } = options;
 
-  // CONFIGURE ME: once Entra OIDC is live, pull the bearer token from
-  // wherever you store it (cookie, in-memory, session storage) and attach:
-  //   headers["Authorization"] = `Bearer ${token}`;
-
-  const init: RequestInit = {
-    ...rest,
-    headers: {
-      Accept: "application/json",
-      ...(body !== undefined ? { "Content-Type": "application/json" } : {}),
-      ...headers,
-    },
-    body: body !== undefined ? JSON.stringify(body) : undefined,
+  const needsCsrf = !["GET", "HEAD", "OPTIONS"].includes(method.toUpperCase());
+  const finalHeaders: Record<string, string> = {
+    Accept: "application/json",
+    ...(body !== undefined ? { "Content-Type": "application/json" } : {}),
+    ...(needsCsrf ? { "X-CSRFToken": getCsrfToken() } : {}),
+    ...headers,
   };
 
-  const response = await fetch(path, init);
+  const response = await fetch(path, {
+    ...rest,
+    method,
+    headers: finalHeaders,
+    credentials: "same-origin",
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+  });
+
   const text = await response.text();
   const parsed = text ? safeJson(text) : null;
 
   if (!response.ok) {
-    throw new ApiError(
-      response.status,
-      parsed ?? text,
-      `API ${response.status} on ${path}`,
-    );
+    throw new ApiError(response.status, parsed ?? text, `API ${response.status} on ${path}`);
   }
   return parsed as T;
 }
 
 function safeJson(text: string): unknown {
-  try {
-    return JSON.parse(text);
-  } catch {
-    return text;
-  }
+  try { return JSON.parse(text); }
+  catch { return text; }
 }

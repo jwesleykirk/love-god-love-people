@@ -1,10 +1,10 @@
-# ---------- Secrets ----------
+# Secrets
 .env
 .env.local
 .env.*.local
 !.env.example
 
-# ---------- Python ----------
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
@@ -31,7 +31,7 @@ db.sqlite3-journal
 backend/static_collected/
 backend/staticfiles/
 
-# ---------- Node / Vite ----------
+# Node / Vite
 node_modules/
 frontend/dist/
 frontend/.vite/
@@ -40,14 +40,17 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# ---------- macOS ----------
+# macOS
 .DS_Store
 .AppleDouble
 .LSOverride
 
-# ---------- IDE ----------
+# IDE
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
+*.tsbuildinfo
+frontend/vite.config.d.ts
+frontend/vite.config.js

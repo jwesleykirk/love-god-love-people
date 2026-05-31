@@ -5,3 +5,7 @@ class AccountsConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
     name = "apps.accounts"
     label = "accounts"
+
+    def ready(self) -> None:  # noqa: D401
+        # Side-effect imports for signal handlers go here. None for v0.1.
+        return
