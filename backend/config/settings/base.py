@@ -258,3 +258,8 @@ LOGGING = {
         "apps": {"level": "INFO", "propagate": True},
     },
 }
+
+# Register PWA manifest MIME so WhiteNoise serves it as application/manifest+json,
+# not the default octet-stream. Browsers (esp. Chrome) require the right MIME.
+import mimetypes
+mimetypes.add_type("application/manifest+json", ".webmanifest")
