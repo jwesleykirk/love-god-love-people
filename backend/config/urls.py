@@ -7,7 +7,7 @@
 - /                      React SPA shell
 """
 from django.contrib import admin
-from django.urls import include, path
+from django.urls import include, path, re_path
 from django.views.generic import TemplateView
 
 from apps.accounts.views import me as accounts_me
@@ -32,5 +32,11 @@ urlpatterns = [
     path("accounts/", include("allauth.urls")),
 
     # SPA fallback
-    path("", TemplateView.as_view(template_name="index.html"), name="spa"),
+    # SPA fallback — any non-server path serves the React shell so React Router
+    # handles /people, /entries/new, /review, /orgs deep links on refresh.
+    re_path(
+        r"^(?!api/|admin/|accounts/|static/|oidc/).*$",
+        TemplateView.as_view(template_name="index.html"),
+        name="spa",
+    ),
 ]
