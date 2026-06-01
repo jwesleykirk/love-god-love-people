@@ -100,3 +100,15 @@ railway logs --deployment <id>
 - If you changed the extraction prompt: bump the version (new file `apps/extraction/prompts/v{N}.py`), update the import in `tasks.py`, update `_docs/prompt-design.md`, and add a structural test.
 - If you changed the data model: update `_docs/architecture.md` and `_docs/data-model-v2.md` (or supersede the latter with a new doc).
 - If you changed user-facing copy/behavior: consider whether `BRIEF.md` needs a re-sync from ChatPRD.
+
+
+## Design system (v0.4)
+
+The visual language is documented in [`_docs/design-system.md`](./_docs/design-system.md). Spec: warm cream paper background, white cards with subtle shadow, editorial serif headings (Source Serif Pro), humanist sans body (Inter), sage/coral/lime accent palette, capsule pill buttons.
+
+### Hard rules for the design layer
+
+- **Always read colors from CSS variables** in `frontend/src/styles/tokens.css`. Never hardcode a hex in a component. If you need a new color, propose adding a token first.
+- **Headings are serif (`var(--font-serif)`); body is sans (`var(--font-sans)`).** Don't mix.
+- **Illustrations live in `frontend/public/illustrations/`.** Wesley generates them via Midjourney; the frontend uses styled placeholders until real assets land. Every placeholder location is tagged with the comment `ILLUSTRATION_PLACEHOLDER: <slot>.svg` for grep-ability.
+- **Pill shape is the dominant language.** Buttons, tabs, chips, multiselect — all capsule.

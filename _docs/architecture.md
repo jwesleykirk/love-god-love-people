@@ -141,3 +141,12 @@ When viewing the historical record list for any model, every row carries a `chan
 - Starts with `superseded:` for signal-driven status flips (currently only `approximate_birth_year`).
 
 If you add a new write path that mutates one of the audited models, set `_change_reason` before calling `save()` so the history row carries provenance.
+
+
+## Design layer
+
+The visual system is documented in [`_docs/design-system.md`](./design-system.md). Implementation: CSS custom properties in `frontend/src/styles/tokens.css`, loaded by `frontend/src/index.css`. Source Serif Pro and Inter are served via Google Fonts CDN, linked in `frontend/index.html`.
+
+**Components never hardcode hexes.** Always read from CSS variables. If you need a color outside the token set, propose adding it to `tokens.css` first.
+
+**Illustrations** sit in `frontend/public/illustrations/` and are referenced via `/illustrations/<slot>.svg`. Wesley generates the artwork separately (Midjourney). Until then, components render a styled placeholder via `<Illustration slot="..." />` from `frontend/src/components/Illustration.tsx`. Every placeholder location is tagged with the comment `ILLUSTRATION_PLACEHOLDER: <slot>.svg`.

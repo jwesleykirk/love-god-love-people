@@ -6,7 +6,7 @@ The core unlock: low-friction journaling backed by AI-driven schema discovery. W
 
 Single-user for v0.1 (Wesley). Architecture supports multi-user from day one. Path to a private Swift iOS app in Phase 5.
 
-Full brief in [`BRIEF.md`](./BRIEF.md). Architecture explainer in [`_docs/architecture.md`](./_docs/architecture.md). Prompt design in [`_docs/prompt-design.md`](./_docs/prompt-design.md). Code conventions and hard rules in [`CLAUDE.md`](./CLAUDE.md).
+Full brief in [`BRIEF.md`](./BRIEF.md). Design system in [`_docs/design-system.md`](./_docs/design-system.md). Architecture explainer in [`_docs/architecture.md`](./_docs/architecture.md). Prompt design in [`_docs/prompt-design.md`](./_docs/prompt-design.md). Code conventions and hard rules in [`CLAUDE.md`](./CLAUDE.md).
 
 ## Stack
 
@@ -58,6 +58,7 @@ Both off by default so a fresh Railway deploy boots without any secrets configur
 - **v0.1** — Person CRUD, JournalEntry with multi-person tagging, EAV property bag (PropertyDef + PersonProperty), async extraction pipeline (OpenRouter → Claude Sonnet), Review Console with Pending Values, Google OAuth, Railway deploy.
 - **v0.1.1** — Person edit form, entry processing-status indicator, New Property Definitions review surface.
 - **v0.2** — Foundational graph: Organizations (n-level parent hierarchy), OrganizationMembership (typed join with temporal validity), AssociationType (21 seeded types — spouse_of, parent_of, mentor_of, etc.), PersonAssociation (two-row storage), entries can tag orgs alongside people, Person.life_stage / birthday / deceased_at, extraction prompt v1.
+- **v0.4** — Design system iteration: tokens (warm cream + sage/coral/lime palette, Source Serif Pro + Inter), Home page, restyled People list and Add Entry as paper-card. Placeholder illustration slots.
 - **v0.3** — ProposedPerson workflow (AI proposes new Person records for un-tagged people), Review Console third tab "Proposed People", audit history via `django-simple-history`, extraction prompt v2 with uncertainty discipline + plural-pronoun expansion + standardized property names, `approximate_birth_year` PropertyDef with automatic supersession when `Person.birthday` is set.
 
 ## Planned

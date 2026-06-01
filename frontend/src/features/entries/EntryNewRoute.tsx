@@ -56,69 +56,89 @@ export default function EntryNewRoute() {
 
   return (
     <main className="container">
-      <h1>New entry</h1>
-      <form onSubmit={submit} className="stack">
-        <div>
-          <label>What happened? Who were you with?</label>
+      <h1 style={{ marginBottom: "var(--space-2)" }}>New entry</h1>
+      <p className="muted" style={{ marginBottom: "var(--space-6)" }}>
+        Tell the page what happened. The AI fills in the structure later.
+      </p>
+
+      <form onSubmit={submit}>
+        <div className="card card--paper" style={{ marginBottom: "var(--space-6)" }}>
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder="Walked with Karie tonight — she mentioned her mom's birthday is coming up…"
             autoFocus
-            rows={8}
+            rows={10}
+            style={{
+              border: "none",
+              padding: 0,
+              fontSize: "var(--text-body-lg)",
+              fontFamily: "var(--font-serif)",
+              lineHeight: 1.6,
+              minHeight: "10rem",
+              background: "transparent",
+            }}
           />
         </div>
-        <div>
-          <label>Tag people</label>
-          {people.length === 0 ? (
-            <p className="muted">Add some people first.</p>
-          ) : (
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
-              {people.map((p) => {
-                const on = selectedP.has(p.id);
-                return (
-                  <button
-                    type="button"
-                    key={p.id}
-                    onClick={() => toggle(selectedP, setSelectedP, p.id)}
-                    className={on ? "" : "secondary"}
-                    style={{ padding: "0.3rem 0.7rem", fontSize: "0.85rem" }}
-                  >
-                    {p.preferred_name || p.full_name}
-                  </button>
-                );
-              })}
-            </div>
-          )}
+
+        <div className="stack-lg">
+          <div>
+            <label>Tag people</label>
+            {people.length === 0 ? (
+              <p className="muted">Add some people first.</p>
+            ) : (
+              <div className="row row--wrap" style={{ gap: "var(--space-2)" }}>
+                {people.map((p) => {
+                  const on = selectedP.has(p.id);
+                  return (
+                    <button
+                      type="button"
+                      key={p.id}
+                      className={on ? "pill-btn pill-btn--selected" : "pill-btn"}
+                      onClick={() => toggle(selectedP, setSelectedP, p.id)}
+                    >
+                      {p.preferred_name || p.full_name}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          <div>
+            <label>Tag organizations (optional)</label>
+            {orgs.length === 0 ? (
+              <p className="muted">No organizations yet.</p>
+            ) : (
+              <div className="row row--wrap" style={{ gap: "var(--space-2)" }}>
+                {orgs.map((o) => {
+                  const on = selectedO.has(o.id);
+                  return (
+                    <button
+                      type="button"
+                      key={o.id}
+                      className={on ? "pill-btn pill-btn--selected" : "pill-btn"}
+                      onClick={() => toggle(selectedO, setSelectedO, o.id)}
+                    >
+                      {o.name}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {error && <p className="muted" style={{ color: "var(--color-warning)" }}>{error}</p>}
+
+          <div style={{ display: "flex", justifyContent: "center" }}>
+            <button type="submit" disabled={busy || !content.trim()} style={{ minWidth: 200 }}>
+              {busy ? "Saving…" : "Save entry"}
+            </button>
+          </div>
+          <p className="muted" style={{ textAlign: "center", fontSize: "var(--text-caption)" }}>
+            Saves immediately. AI extraction runs in the background.
+          </p>
         </div>
-        <div>
-          <label>Tag organizations (optional)</label>
-          {orgs.length === 0 ? (
-            <p className="muted">No organizations yet.</p>
-          ) : (
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
-              {orgs.map((o) => {
-                const on = selectedO.has(o.id);
-                return (
-                  <button
-                    type="button"
-                    key={o.id}
-                    onClick={() => toggle(selectedO, setSelectedO, o.id)}
-                    className={on ? "" : "secondary"}
-                    style={{ padding: "0.3rem 0.7rem", fontSize: "0.85rem" }}
-                  >
-                    {o.name}
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </div>
-        {error && <p style={{ color: "crimson" }}>{error}</p>}
-        <button type="submit" disabled={busy || !content.trim()}>{busy ? "Saving…" : "Save entry"}</button>
-        <p className="muted">
-          Saves immediately. AI extraction runs in the background — results appear in <a href="/review">Review</a>.
-        </p>
       </form>
     </main>
   );

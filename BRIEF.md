@@ -51,6 +51,7 @@ Wesley struggles to remember names, faces, and the personal details of people he
 | 1 — Journal + DB + AI schema discovery + review console | People CRUD, entries, tagging, AI property extraction, review UI, Google OAuth | **shipped (v0.1)** |
 | 1.1 — UX polish | Person edit form, entry processing-status indicator, New Property Definitions review surface | **shipped (v0.1.1)** |
 | 1.5 — Foundational graph | Organizations + hierarchy, OrganizationMembership, PersonAssociation typed edges (22 seeded types), entries tag orgs, life_stage, birthday, deceased_at | **shipped (v0.2)** |
+| 1.8 — Design language | Token-driven CSS (cream/sage/coral palette, Source Serif Pro + Inter), Home page, paper-card vocabulary, illustration slots awaiting Midjourney assets. See [`_docs/design-system.md`](./_docs/design-system.md). | **shipped (v0.4)** |
 | 1.7 — Extraction discipline | ProposedPerson workflow (AI proposes new Person records for un-tagged people), prompt v2 (uncertainty discipline, plural-pronoun expansion), audit history via django-simple-history, approximate_birth_year supersession | **shipped (v0.3)** |
 | 2 — Spaced repetition | Flag properties for review, daily queue, Anki-style intervals | planned |
 | 3 — Prayer engine | Frequency per person (daily/weekly/monthly/none), daily queue, mark-as-prayed | planned |

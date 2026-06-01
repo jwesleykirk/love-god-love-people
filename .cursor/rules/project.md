@@ -38,3 +38,10 @@ Read in this order:
 - Repo: https://github.com/jwesleykirk/love-god-love-people
 - Brief (canonical): ChatPRD document UUID `a1381cd7-b390-49b3-9090-20a615a2084d`
 - Live: https://web-production-0bdba.up.railway.app
+
+
+## Design system
+
+Visual tokens and component specs live in `_docs/design-system.md`. Implementation in `frontend/src/styles/tokens.css`.
+
+**Hard rules:** always read from CSS variables — never hardcode hexes. Illustrations land in `frontend/public/illustrations/` (Wesley generates them separately; placeholders are in place).

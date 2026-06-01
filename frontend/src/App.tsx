@@ -4,6 +4,7 @@ import { peopleRoutes } from "./features/people/routes";
 import { entriesRoutes } from "./features/entries/routes";
 import { reviewRoutes } from "./features/review/routes";
 import { orgsRoutes } from "./features/orgs/routes";
+import { homeRoutes } from "./features/home/routes";
 import { AuthGate } from "./features/auth/AuthGate";
 import { useAuth } from "./features/auth/AuthProvider";
 
@@ -11,9 +12,9 @@ function AppHeader() {
   const { auth, logout } = useAuth();
   return (
     <header className="app">
-      <Link to="/" className="brand">LGLP</Link>
+      <Link to="/" className="brand">Love God, Love People</Link>
       <nav>
-        <Link to="/">People</Link>
+        <Link to="/people">People</Link>
         <Link to="/orgs">Orgs</Link>
         <Link to="/entries/new">+ Entry</Link>
         <Link to="/review">Review</Link>
@@ -30,6 +31,7 @@ export default function App() {
     <AuthGate>
       <AppHeader />
       <Routes>
+        {homeRoutes}
         {peopleRoutes}
         {entriesRoutes}
         {reviewRoutes}
