@@ -339,3 +339,15 @@ Exactly **two tabs**: **Profile** and **Entries**. No sub-tabs.
 ### The null-render rule
 
 Never render a row, chip, or card whose value is empty. No `—` placeholders, no "Not set yet." inline labels. If a topic card would have zero visible rows after applying the null-render filter, hide the whole card. This applies to v0.8 and forward; it's intentionally aggressive so the page reads as a polished summary, not a half-filled form.
+
+
+## SearchPicker vs filter chips (v0.8.1)
+
+Two related but distinct primitives:
+
+- **SearchPicker** — for *picking* a value from a list (single or multi). Renders a searchable list inline. Use it inside a form (Person new, Add association, Add membership) or in a hero/edit context where the dropdown can take real estate.
+- **Filter chip row** — for *filtering* a list view (People list, Orgs list). Renders as a horizontally-scrolling row of capsule chips immediately under the search input. Active chip is `--color-primary` fill with a `✓`; inactive is `--color-card` with a thin `--color-border-strong` border.
+
+**Why the split:** SearchPicker's absolute-positioned dropdown overlay clobbers content beneath it at mobile widths — exactly the regression Wesley flagged on the People list. Use the chip row for any filter that should always be visible alongside results.
+
+CSS class: `.chip-row` wrapper, `.chip-btn` + `.chip-btn--active` for the chips. Mobile-first: row uses `overflow-x: auto`, `scroll-snap-type: x mandatory`, scrollbars hidden. On desktop it stays the same shape — the row just doesn't need to scroll because all chips fit.

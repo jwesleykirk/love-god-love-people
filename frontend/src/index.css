@@ -429,3 +429,41 @@ nav.bottom-nav .bn-icon { font-size: 1.25rem; }
   flex: 1;
   min-width: 160px;
 }
+
+/* ──────── Filter chip row (mobile-first, horizontal scroll) ──────── */
+
+.chip-row {
+  display: flex;
+  gap: var(--space-2);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x mandatory;
+  padding: var(--space-1) 0 var(--space-3);
+  margin: 0 calc(-1 * var(--space-4));
+  padding-left: var(--space-4);
+  padding-right: var(--space-4);
+  /* Hide scrollbar visually but keep accessibility */
+  scrollbar-width: none;
+}
+.chip-row::-webkit-scrollbar { display: none; }
+
+.chip-btn {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+  background: var(--color-card);
+  color: var(--color-text);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-label);
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.chip-btn:hover { background: var(--color-bg); }
+.chip-btn--active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-text);
+}
+.chip-btn--active::after { content: " ✓"; }

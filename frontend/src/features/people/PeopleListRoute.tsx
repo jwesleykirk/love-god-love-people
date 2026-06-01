@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { relationshipCategoryFilterItems } from "@/components/optionItems";
-import { SearchPicker } from "@/components/SearchPicker";
-import { listPeople, type Person, type RelationshipCategory } from "./api";
+import { listPeople, RELATIONSHIP_CATEGORIES, type Person, type RelationshipCategory } from "./api";
 import { Illustration } from "@/components/Illustration";
+
+const CHIPS: Array<{ value: RelationshipCategory | ""; label: string }> = [
+  { value: "", label: "All" },
+  ...RELATIONSHIP_CATEGORIES,
+];
 
 const CATEGORY_LABEL: Record<string, string> = {
   family: "Family",
@@ -38,29 +41,34 @@ export default function PeopleListRoute() {
 
   return (
     <main className="container">
-      <div className="row row--between" style={{ marginBottom: "var(--space-4)" }}>
+      <div className="row row--between" style={{ marginBottom: "var(--space-3)" }}>
         <h1 style={{ margin: 0 }}>People</h1>
         <Link to="/people/new"><button className="secondary">+ Add</button></Link>
       </div>
 
-      <div className="row row--wrap" style={{ marginBottom: "var(--space-4)", gap: "var(--space-2)" }}>
-        <input
-          placeholder="Search by name…"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          style={{ flex: 1, minWidth: 200 }}
-        />
-        <div className="search-picker--inline">
-          <SearchPicker
-            items={relationshipCategoryFilterItems()}
-            value={category}
-            onChange={(id) => setCategory(id as RelationshipCategory | "")}
-            lockWhenSelected={false}
-            placeholder="Filter category…"
-            listAriaLabel="Relationship categories"
-          />
-        </div>
-      </div>
+      <input
+        placeholder="Search by name…"
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+        style={{ marginBottom: "var(--space-2)" }}
+      />
+
+      <nav className="chip-row" aria-label="Filter by relationship">
+        {CHIPS.map((c) => {
+          const on = c.value === category;
+          return (
+            <button
+              key={c.value || "all"}
+              type="button"
+              className={on ? "chip-btn chip-btn--active" : "chip-btn"}
+              onClick={() => setCategory(c.value as RelationshipCategory | "")}
+              aria-pressed={on}
+            >
+              {c.label}
+            </button>
+          );
+        })}
+      </nav>
 
       {error && <p className="muted" style={{ color: "var(--color-warning)" }}>{error}</p>}
 
@@ -85,7 +93,6 @@ export default function PeopleListRoute() {
                 padding: "var(--space-4) var(--space-6)",
               }}
             >
-              {/* ILLUSTRATION_PLACEHOLDER: {p.relationship_category}.svg */}
               <Illustration
                 slot={p.relationship_category}
                 size="lg"

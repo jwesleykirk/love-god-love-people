@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { orgTypeFilterItems } from "@/components/OrgPicker";
-import { SearchPicker } from "@/components/SearchPicker";
-import { listOrgs, type Organization, type OrgType } from "./api";
+import { listOrgs, ORG_TYPES, type Organization, type OrgType } from "./api";
 import { Illustration } from "@/components/Illustration";
+
+const CHIPS: Array<{ value: OrgType | ""; label: string }> = [
+  { value: "", label: "All" },
+  ...ORG_TYPES,
+];
 
 const ORG_TYPE_LABEL: Record<string, string> = {
   church: "Church",
@@ -39,24 +42,37 @@ export default function OrgsListRoute() {
 
   return (
     <main className="container">
-      <div className="row row--between" style={{ marginBottom: "var(--space-4)" }}>
+      <div className="row row--between" style={{ marginBottom: "var(--space-3)" }}>
         <h1 style={{ margin: 0 }}>Organizations</h1>
         <Link to="/orgs/new"><button className="secondary">+ Add</button></Link>
       </div>
-      <div className="row row--wrap" style={{ marginBottom: "var(--space-4)", gap: "var(--space-2)" }}>
-        <input placeholder="Search…" value={q} onChange={(e) => setQ(e.target.value)} style={{ flex: 1, minWidth: 200 }} />
-        <div className="search-picker--inline">
-          <SearchPicker
-            items={orgTypeFilterItems()}
-            value={orgType}
-            onChange={(id) => setOrgType(id as OrgType | "")}
-            lockWhenSelected={false}
-            placeholder="Filter type…"
-            listAriaLabel="Organization types"
-          />
-        </div>
-      </div>
+
+      <input
+        placeholder="Search…"
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+        style={{ marginBottom: "var(--space-2)" }}
+      />
+
+      <nav className="chip-row" aria-label="Filter by organization type">
+        {CHIPS.map((c) => {
+          const on = c.value === orgType;
+          return (
+            <button
+              key={c.value || "all"}
+              type="button"
+              className={on ? "chip-btn chip-btn--active" : "chip-btn"}
+              onClick={() => setOrgType(c.value as OrgType | "")}
+              aria-pressed={on}
+            >
+              {c.label}
+            </button>
+          );
+        })}
+      </nav>
+
       {error && <p className="muted" style={{ color: "var(--color-warning)" }}>{error}</p>}
+
       {orgs.length === 0 ? (
         <div className="card" style={{ textAlign: "center" }}>
           <p className="muted">No organizations yet.</p>
@@ -78,7 +94,6 @@ export default function OrgsListRoute() {
                 padding: "var(--space-4) var(--space-6)",
               }}
             >
-              {/* ILLUSTRATION_PLACEHOLDER: org-{org_type}.svg */}
               <Illustration slot={`org-${o.org_type}`} size="lg" label={o.org_type[0].toUpperCase()} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ color: "var(--color-text)", fontSize: "var(--text-body-lg)", fontWeight: 600, fontFamily: "var(--font-serif)" }}>
