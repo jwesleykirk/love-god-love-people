@@ -13,6 +13,7 @@ import {
   rejectProperty,
   rejectProposedPerson,
   renamePropertyDef,
+  updatePropertyDefTopic,
   type PendingResponse,
   type PendingValue,
   type ProposedPerson,
@@ -21,6 +22,17 @@ import {
 import { propertyDefItems, relationshipCategoryCreateItems } from "@/components/optionItems";
 import { SearchPicker } from "@/components/SearchPicker";
 import type { RelationshipCategory } from "../people/api";
+
+
+const TOPIC_PICKER_ITEMS = [
+  { id: "bio", label: "Bio" },
+  { id: "family", label: "Family" },
+  { id: "work", label: "Work" },
+  { id: "interests", label: "Interests" },
+  { id: "faith", label: "Faith" },
+  { id: "health", label: "Health" },
+  { id: "other", label: "Other" },
+];
 
 type Tab = "values" | "definitions" | "persons";
 
@@ -217,7 +229,10 @@ function NewPropertyDefsPane() {
           activeDefs={activeDefs.filter((x) => x.id !== pd.id)}
           onKeep={() => act(pd.id, () => keepPropertyDef(pd.id))}
           onArchive={() => act(pd.id, () => archivePropertyDef(pd.id))}
-          onRename={(name, desc) => act(pd.id, () => renamePropertyDef(pd.id, name, desc))}
+          onRename={(name, desc, topic) => act(pd.id, async () => {
+            await renamePropertyDef(pd.id, name, desc);
+            if (topic !== pd.topic) await updatePropertyDefTopic(pd.id, topic);
+          })}
           onMerge={(t) => act(pd.id, () => mergePropertyDef(pd.id, t))}
         />
       ))}
@@ -231,12 +246,13 @@ function PropertyDefRow({ pd, busy, activeDefs, onKeep, onArchive, onRename, onM
   activeDefs: PropertyDef[];
   onKeep: () => void;
   onArchive: () => void;
-  onRename: (name: string, description: string) => void;
+  onRename: (name: string, description: string, topic: string) => void;
   onMerge: (targetId: number) => void;
 }) {
   const [mode, setMode] = useState<"default" | "rename" | "merge">("default");
   const [draftName, setDraftName] = useState(pd.name);
   const [draftDesc, setDraftDesc] = useState(pd.description);
+  const [draftTopic, setDraftTopic] = useState<string>(pd.topic);
   const [mergeTarget, setMergeTarget] = useState<number | "">("");
   return (
     <div className="card">
@@ -248,6 +264,7 @@ function PropertyDefRow({ pd, busy, activeDefs, onKeep, onArchive, onRename, onM
         {pd.description && <div className="muted" style={{ marginTop: 2 }}>{pd.description}</div>}
       </div>
       <div className="row row--wrap" style={{ gap: "var(--space-1)", marginBottom: "var(--space-3)" }}>
+        <span className="chip pill--primary">{pd.topic}</span>
         <span className="chip">{pd.data_type_hint}</span>
         <span className="chip">conf {pd.ai_confidence_on_creation.toFixed(2)}</span>
         <span className="chip">used {pd.usage_count}×</span>
@@ -257,9 +274,15 @@ function PropertyDefRow({ pd, busy, activeDefs, onKeep, onArchive, onRename, onM
         <div className="stack">
           <div><label>Name</label><input value={draftName} onChange={(e) => setDraftName(e.target.value)} /></div>
           <div><label>Description</label><input value={draftDesc} onChange={(e) => setDraftDesc(e.target.value)} /></div>
+          <SearchPicker
+            label="Topic"
+            items={TOPIC_PICKER_ITEMS}
+            value={draftTopic}
+            onChange={(id) => setDraftTopic(String(id))}
+          />
           <div className="row" style={{ gap: "var(--space-2)" }}>
-            <button disabled={busy || !draftName.trim()} onClick={() => onRename(draftName.trim(), draftDesc)}>Save</button>
-            <button className="secondary" onClick={() => { setMode("default"); setDraftName(pd.name); setDraftDesc(pd.description); }}>Cancel</button>
+            <button disabled={busy || !draftName.trim()} onClick={() => onRename(draftName.trim(), draftDesc, draftTopic)}>Save</button>
+            <button className="secondary" onClick={() => { setMode("default"); setDraftName(pd.name); setDraftDesc(pd.description); setDraftTopic(pd.topic); }}>Cancel</button>
           </div>
         </div>
       )}

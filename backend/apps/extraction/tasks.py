@@ -18,10 +18,11 @@ from apps.properties.models import (
     PersonPropertyStatus,
     PropertyDef,
     PropertyDefStatus,
+    PropertyTopic,
 )
 
 from .models import ProposedPerson, ProposedPersonStatus
-from .prompts import v2 as prompt_v2
+from .prompts import v3 as prompt_v3
 from .services.openrouter import OpenRouterError, extract_json
 
 logger = logging.getLogger(__name__)
@@ -130,10 +131,10 @@ def run_extraction(entry_id: int) -> str:
         persons_ctx = _persons_context(entry)
         orgs_ctx = _organizations_context(entry)
         types_ctx = _available_association_types()
-        user_prompt = prompt_v2.build_user_prompt(
+        user_prompt = prompt_v3.build_user_prompt(
             entry.content_markdown, persons_ctx, orgs_ctx, types_ctx
         )
-        result = extract_json(prompt_v2.SYSTEM_PROMPT, user_prompt)
+        result = extract_json(prompt_v3.SYSTEM_PROMPT, user_prompt)
     except OpenRouterError as exc:
         logger.exception("openrouter error on entry %s", entry_id)
         entry.extraction_status = "error"
@@ -157,9 +158,10 @@ def run_extraction(entry_id: int) -> str:
 def _persist_extraction(entry: JournalEntry, result: dict[str, Any]) -> None:
     owner = entry.owner
     model_slug = getattr(settings, "OPENROUTER_MODEL", "")
-    pv = prompt_v2.VERSION
+    pv = prompt_v3.VERSION
 
     valid_data_types = {choice.value for choice in DataTypeHint}
+    valid_topics = {choice.value for choice in PropertyTopic}
     person_ids_in_entry = set(entry.persons.values_list("id", flat=True))
 
     # 1. existing_property_values
@@ -203,6 +205,7 @@ def _persist_extraction(entry: JournalEntry, result: dict[str, Any]) -> None:
             proposed_name = str(row["proposed_name"]).strip().lower().replace(" ", "_")
             proposed_description = str(row.get("proposed_description", "")).strip()
             proposed_data_type = str(row.get("proposed_data_type", "text")).strip().lower()
+            proposed_topic = str(row.get("proposed_topic", "other")).strip().lower()
             value = str(row.get("value", "")).strip()
             confidence = float(row.get("confidence", 0.0))
         except (KeyError, TypeError, ValueError):
@@ -214,12 +217,15 @@ def _persist_extraction(entry: JournalEntry, result: dict[str, Any]) -> None:
             continue
         if proposed_data_type not in valid_data_types:
             proposed_data_type = DataTypeHint.TEXT
+        if proposed_topic not in valid_topics:
+            proposed_topic = PropertyTopic.OTHER
         pdef, _ = PropertyDef.objects.get_or_create(
             owner=owner,
             name=proposed_name,
             defaults={
                 "description": proposed_description,
                 "data_type_hint": proposed_data_type,
+                "topic": proposed_topic,
                 "first_proposed_from_entry": entry,
                 "ai_confidence_on_creation": confidence,
             },
@@ -272,13 +278,16 @@ def _persist_extraction(entry: JournalEntry, result: dict[str, Any]) -> None:
                 value = str(prop.get("value") or "").strip()
                 pconf = float(prop.get("confidence") or 0.0)
                 data_type = str(prop.get("data_type") or "text").strip().lower()
+                topic = str(prop.get("topic") or "other").strip().lower()
             except (TypeError, ValueError):
                 continue
             if not name or not value:
                 continue
             if data_type not in valid_data_types:
                 data_type = DataTypeHint.TEXT
-            properties.append({"property_name": name, "value": value, "confidence": pconf, "data_type": data_type})
+            if topic not in valid_topics:
+                topic = PropertyTopic.OTHER
+            properties.append({"property_name": name, "value": value, "confidence": pconf, "data_type": data_type, "topic": topic})
 
         ProposedPerson.objects.create(
             owner=owner,

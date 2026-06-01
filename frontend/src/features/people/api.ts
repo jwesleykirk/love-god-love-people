@@ -68,6 +68,7 @@ export type PersonProperty = {
   person_name: string;
   property_def: number;
   property_def_name: string;
+  property_def_topic: string;
   value_text: string;
   ai_confidence: number;
   source_entry: number | null;

@@ -112,3 +112,11 @@ The visual language is documented in [`_docs/design-system.md`](./_docs/design-s
 - **Headings are serif (`var(--font-serif)`); body is sans (`var(--font-sans)`).** Don't mix.
 - **Illustrations live in `frontend/public/illustrations/`.** Wesley generates them via Midjourney; the frontend uses styled placeholders until real assets land. Every placeholder location is tagged with the comment `ILLUSTRATION_PLACEHOLDER: <slot>.svg` for grep-ability.
 - **Pill shape is the dominant language.** Buttons, tabs, chips, multiselect — all capsule.
+
+
+## Person Detail + null rendering (v0.8)
+
+- **Person Detail has exactly two tabs:** Profile (everything structured — hero, notes, topic-grouped property cards, associations, memberships) and Entries (journal timeline). No other tabs.
+- **Null/empty PersonProperty values do not render in the UI.** A row is hidden if its `value_text` is empty, whitespace, `null`, `none`, `n/a`, or `—`.
+- **Topic cards hide entirely if they have zero non-null approved values for the person.** Never render an empty topic card.
+- **`PropertyDef.topic` is a soft enum:** `bio | family | work | interests | faith | health | other`. The AI is constrained to those at prompt time (v3); the DB column has no strict `choices`, so new topics can be introduced via the Review console's Rename action.

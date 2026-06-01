@@ -115,7 +115,7 @@ class ExistingPropertyPersistenceTests(TestCase):
         self.assertEqual(PersonProperty.objects.count(), 1)
         pp = PersonProperty.objects.first()
         self.assertEqual(pp.status, PersonPropertyStatus.PENDING_REVIEW)
-        self.assertEqual(pp.prompt_version, "v2")
+        self.assertEqual(pp.prompt_version, "v3")
 
 
 class ProposedPersonsPersistenceTests(TestCase):
@@ -312,3 +312,127 @@ class SupersessionSignalTests(TestCase):
         self.person.save()
         self.pp.refresh_from_db()
         self.assertEqual(self.pp.status, PersonPropertyStatus.APPROVED)
+
+
+
+# ============== v0.8: topic-aware extraction ==============
+
+
+class PromptV3StructureTests(TestCase):
+    def test_version_is_v3(self):
+        from .prompts import v3 as prompt_v3
+        self.assertEqual(prompt_v3.VERSION, "v3")
+
+    def test_recognized_topics_present(self):
+        from .prompts import v3 as prompt_v3
+        for t in ("bio", "family", "work", "interests", "faith", "health", "other"):
+            self.assertIn(t, prompt_v3.SYSTEM_PROMPT, f"topic {t!r} missing from prompt")
+
+    def test_proposed_topic_field_documented(self):
+        from .prompts import v3 as prompt_v3
+        self.assertIn("proposed_topic", prompt_v3.SYSTEM_PROMPT)
+
+
+class TopicPersistenceTests(TestCase):
+    """Verify _persist_extraction reads proposed_topic and falls back to 'other'."""
+
+    def setUp(self):
+        User = get_user_model()
+        self.user = User.objects.create(username="wesley@local", email="wesley@local")
+        self.person = Person.objects.create(
+            owner=self.user,
+            full_name="Karie",
+            relationship_category=RelationshipCategory.FAMILY,
+        )
+        self.entry = JournalEntry.objects.create(
+            owner=self.user,
+            content_markdown="Karie has been reading more Tolkien lately.",
+        )
+        PersonJournalEntry.objects.create(person=self.person, entry=self.entry)
+
+    def test_proposed_topic_recorded(self):
+        result = {
+            "narrative_only": False,
+            "existing_property_values": [],
+            "new_property_proposals": [
+                {
+                    "person_id": self.person.pk,
+                    "proposed_name": "favorite_author",
+                    "proposed_description": "Author this person returns to most.",
+                    "proposed_data_type": "text",
+                    "proposed_topic": "interests",
+                    "value": "J.R.R. Tolkien",
+                    "confidence": 0.9,
+                }
+            ],
+            "proposed_persons": [],
+        }
+        _persist_extraction(self.entry, result)
+        pdef = PropertyDef.objects.get(name="favorite_author")
+        self.assertEqual(pdef.topic, "interests")
+
+    def test_missing_topic_falls_back_to_other(self):
+        result = {
+            "narrative_only": False,
+            "existing_property_values": [],
+            "new_property_proposals": [
+                {
+                    "person_id": self.person.pk,
+                    "proposed_name": "favorite_food_no_topic",
+                    "proposed_description": "x",
+                    "proposed_data_type": "text",
+                    "value": "ramen",
+                    "confidence": 0.9,
+                }
+            ],
+            "proposed_persons": [],
+        }
+        _persist_extraction(self.entry, result)
+        pdef = PropertyDef.objects.get(name="favorite_food_no_topic")
+        self.assertEqual(pdef.topic, "other")
+
+    def test_invalid_topic_falls_back_to_other(self):
+        result = {
+            "narrative_only": False,
+            "existing_property_values": [],
+            "new_property_proposals": [
+                {
+                    "person_id": self.person.pk,
+                    "proposed_name": "favorite_animal",
+                    "proposed_description": "x",
+                    "proposed_data_type": "text",
+                    "proposed_topic": "totally_made_up",
+                    "value": "otter",
+                    "confidence": 0.9,
+                }
+            ],
+            "proposed_persons": [],
+        }
+        _persist_extraction(self.entry, result)
+        pdef = PropertyDef.objects.get(name="favorite_animal")
+        self.assertEqual(pdef.topic, "other")
+
+
+class TopicApiTests(TestCase):
+    """API PATCH on /api/property-defs/:id/ accepts topic changes."""
+
+    def setUp(self):
+        from rest_framework.test import APIClient
+        self.client = APIClient()
+        self.client.get("/api/auth/me/")
+
+    def test_patch_topic(self):
+        # Create a PropertyDef via Django so we know the id
+        from django.contrib.auth import get_user_model
+        user = get_user_model().objects.get(username="wesley@local")
+        pdef = PropertyDef.objects.create(
+            owner=user, name="favorite_verse", topic="other"
+        )
+        r = self.client.patch(
+            f"/api/property-defs/{pdef.pk}/",
+            {"topic": "faith"},
+            format="json",
+        )
+        self.assertEqual(r.status_code, 200, r.content)
+        pdef.refresh_from_db()
+        self.assertEqual(pdef.topic, "faith")

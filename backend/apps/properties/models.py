@@ -27,6 +27,16 @@ class PropertyDefStatus(models.TextChoices):
     MERGED = "merged", "Merged"
 
 
+class PropertyTopic(models.TextChoices):
+    BIO = "bio", "Bio"
+    FAMILY = "family", "Family"
+    WORK = "work", "Work"
+    INTERESTS = "interests", "Interests"
+    FAITH = "faith", "Faith"
+    HEALTH = "health", "Health"
+    OTHER = "other", "Other"
+
+
 class PropertyDef(models.Model):
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -40,6 +50,10 @@ class PropertyDef(models.Model):
         choices=DataTypeHint.choices,
         default=DataTypeHint.TEXT,
     )
+    # Topic is a soft enum — Wesley can introduce new ones over time. The AI is
+    # constrained to the recognized list (see apps.extraction.prompts.v3) but
+    # we don't enforce choices at the DB layer so the catalog can grow.
+    topic = models.CharField(max_length=32, default=PropertyTopic.OTHER)
     first_proposed_at = models.DateTimeField(auto_now_add=True)
     first_proposed_from_entry = models.ForeignKey(
         "entries.JournalEntry",

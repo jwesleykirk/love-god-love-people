@@ -59,6 +59,7 @@ export type PropertyDef = {
   name: string;
   description: string;
   data_type_hint: "text" | "date" | "integer" | "boolean" | "enum" | "url";
+  topic: string;
   status: "active" | "archived" | "merged";
   first_proposed_at: string;
   first_proposed_from_entry: number | null;
@@ -159,4 +160,9 @@ export type PersonPropertyHistoryEntry = {
 
 export function getPersonPropertyHistory(id: number) {
   return apiFetch<{ history: PersonPropertyHistoryEntry[] }>(`/api/properties/${id}/history/`);
+}
+
+
+export function updatePropertyDefTopic(id: number, topic: string) {
+  return apiFetch(`/api/property-defs/${id}/`, { method: "PATCH", body: { topic } });
 }

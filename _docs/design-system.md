@@ -315,3 +315,27 @@ No visible brand marks are rendered in the UI chrome by design. The brand surfac
 - **Illustrations go in `frontend/public/illustrations/`.** Components reference them via `/illustrations/<slot>.svg`. Until Wesley ships the real ones, render the styled SVG placeholder.
 - **Shadows are subtle.** `--shadow-md` is the ceiling for normal cards. Reach for `--shadow-sm` more often.
 - **Pill is the dominant shape language.** Buttons, tabs, chips, multiselect — all capsule.
+
+
+## Person Detail layout (v0.8)
+
+Exactly **two tabs**: **Profile** and **Entries**. No sub-tabs.
+
+**Profile tab** is a single vertical scroll:
+
+1. Hero card — name (serif), illustration slot, chip row (category, life_stage, age derived).
+2. Notes (if any) in a card.
+3. **Properties grouped by topic.** One `Card` per topic. Topic label is the card's `h3` heading (serif). Property rows inside read as `<muted-name> ········ <value>`.
+4. Associations (existing `AssociationsPanel`).
+5. Memberships (existing card list).
+
+### Topic-grouped property cards
+
+- `PropertyDef.topic` is a soft enum: `bio | family | work | interests | faith | health | other`. New topics may be introduced; the AI is constrained to the recognized list (prompt v3); the DB column has no `choices` constraint so the catalog can grow.
+- Render order on Person Detail: `bio → family → work → interests → faith → health → other`. Any unrecognized topic falls after `other`.
+- A topic card is **hidden entirely** if it has zero approved + non-null `PersonProperty` rows for the person.
+- An individual property row is **hidden** if its `value_text` is null, empty, whitespace, `null`, `none`, `n/a`, or `—`.
+
+### The null-render rule
+
+Never render a row, chip, or card whose value is empty. No `—` placeholders, no "Not set yet." inline labels. If a topic card would have zero visible rows after applying the null-render filter, hide the whole card. This applies to v0.8 and forward; it's intentionally aggressive so the page reads as a polished summary, not a half-filled form.

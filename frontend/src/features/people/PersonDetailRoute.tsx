@@ -2,7 +2,9 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
   getPerson,
+  LIFE_STAGES,
   listPersonProperties,
+  RELATIONSHIP_CATEGORIES,
   updatePerson,
   type LifeStage,
   type Person,
@@ -12,18 +14,14 @@ import {
 import { listEntries, type JournalEntry } from "../entries/api";
 import { listMemberships, type Membership } from "../orgs/api";
 import { AssociationsPanel } from "../associations/AssociationsPanel";
-import { lifeStageItems, relationshipCategoryItems } from "@/components/optionItems";
 import { Illustration } from "@/components/Illustration";
 import { SearchPicker } from "@/components/SearchPicker";
 
-type Tab = "profile" | "properties" | "associations" | "memberships" | "journal";
+type Tab = "profile" | "entries";
 
 const TABS: Array<{ value: Tab; label: string }> = [
   { value: "profile", label: "Profile" },
-  { value: "properties", label: "Properties" },
-  { value: "associations", label: "Associations" },
-  { value: "memberships", label: "Memberships" },
-  { value: "journal", label: "Journal" },
+  { value: "entries", label: "Entries" },
 ];
 
 const CATEGORY_LABEL: Record<string, string> = {
@@ -35,6 +33,23 @@ const CATEGORY_LABEL: Record<string, string> = {
   other: "Other",
 };
 
+const TOPIC_ORDER = ["bio", "family", "work", "interests", "faith", "health", "other"] as const;
+const TOPIC_LABEL: Record<string, string> = {
+  bio: "Bio",
+  family: "Family",
+  work: "Work",
+  interests: "Interests",
+  faith: "Faith",
+  health: "Health",
+  other: "Other",
+};
+
+function isMeaningful(value: string | null | undefined): boolean {
+  if (value == null) return false;
+  const v = String(value).trim().toLowerCase();
+  return v.length > 0 && v !== "null" && v !== "none" && v !== "n/a" && v !== "—";
+}
+
 function entryStatusLabel(s: JournalEntry["extraction_status"]) {
   switch (s) {
     case "pending": return "queued";
@@ -45,7 +60,6 @@ function entryStatusLabel(s: JournalEntry["extraction_status"]) {
     default: return s;
   }
 }
-
 function entryStatusPill(s: JournalEntry["extraction_status"]) {
   switch (s) {
     case "done": return "pill pill--success";
@@ -54,6 +68,15 @@ function entryStatusPill(s: JournalEntry["extraction_status"]) {
     default: return "pill";
   }
 }
+
+const LIFE_STAGE_PICKER_ITEMS = LIFE_STAGES.map((s) => ({
+  id: s.value || "_none",
+  label: s.label,
+}));
+const CATEGORY_PICKER_ITEMS = RELATIONSHIP_CATEGORIES.map((c) => ({
+  id: c.value,
+  label: c.label,
+}));
 
 export default function PersonDetailRoute() {
   const params = useParams<{ id: string }>();
@@ -138,8 +161,25 @@ export default function PersonDetailRoute() {
   if (error) return <main className="container"><p style={{ color: "var(--color-warning)" }}>{error}</p></main>;
   if (!person) return <main className="container"><p className="muted">Loading…</p></main>;
 
-  const approved = properties.filter((p) => p.status === "approved" || p.status === "edited");
-  const pending = properties.filter((p) => p.status === "pending_review");
+  // Approved or edited values, with non-empty content. Group by topic.
+  const visibleProps = properties.filter(
+    (p) =>
+      (p.status === "approved" || p.status === "edited") &&
+      isMeaningful(p.value_text)
+  );
+  const propsByTopic = new Map<string, PersonProperty[]>();
+  for (const pp of visibleProps) {
+    const topic = pp.property_def_topic || "other";
+    if (!propsByTopic.has(topic)) propsByTopic.set(topic, []);
+    propsByTopic.get(topic)!.push(pp);
+  }
+  const topicsToRender = TOPIC_ORDER.filter((t) => propsByTopic.has(t));
+  for (const extra of propsByTopic.keys()) {
+    if (!topicsToRender.includes(extra as (typeof TOPIC_ORDER)[number])) {
+      topicsToRender.push(extra as (typeof TOPIC_ORDER)[number]);
+    }
+  }
+  const pendingCount = properties.filter((p) => p.status === "pending_review").length;
 
   const ageDisplay = (() => {
     if (person.birthday) {
@@ -148,7 +188,9 @@ export default function PersonDetailRoute() {
       const ageYears = Math.floor(ageMs / (1000 * 60 * 60 * 24 * 365.25));
       return `${ageYears} years old`;
     }
-    const approx = properties.find((p) => p.property_def_name === "approximate_birth_year" && (p.status === "approved" || p.status === "edited"));
+    const approx = properties.find(
+      (p) => p.property_def_name === "approximate_birth_year" && (p.status === "approved" || p.status === "edited")
+    );
     if (approx) {
       const match = approx.value_text.match(/(\d{4})/);
       if (match) {
@@ -194,28 +236,21 @@ export default function PersonDetailRoute() {
         </button>
       </div>
 
-      {/* Edit form takes over when editing */}
       {editing && (
         <div className="card stack">
           <div><label>Full name</label><input value={draftFullName} onChange={(e) => setDraftFullName(e.target.value)} /></div>
           <div><label>Preferred name</label><input value={draftPreferred} onChange={(e) => setDraftPreferred(e.target.value)} /></div>
           <SearchPicker
             label="Relationship"
-            items={relationshipCategoryItems()}
+            items={CATEGORY_PICKER_ITEMS}
             value={draftCategory}
-            onChange={(id) => setDraftCategory(id as RelationshipCategory)}
-            lockWhenSelected={false}
-            placeholder="Search categories…"
-            listAriaLabel="Relationship categories"
+            onChange={(id) => setDraftCategory(String(id) as RelationshipCategory)}
           />
           <SearchPicker
             label="Life stage"
-            items={lifeStageItems()}
-            value={draftLifeStage}
-            onChange={(id) => setDraftLifeStage(id as LifeStage)}
-            lockWhenSelected={false}
-            placeholder="Search life stages…"
-            listAriaLabel="Life stages"
+            items={LIFE_STAGE_PICKER_ITEMS}
+            value={draftLifeStage || "_none"}
+            onChange={(id) => setDraftLifeStage(id === "_none" ? "" : (String(id) as LifeStage))}
           />
           <div><label>Birthday</label><input type="date" value={draftBirthday} onChange={(e) => setDraftBirthday(e.target.value)} /></div>
           <div><label>Deceased</label><input type="date" value={draftDeceased} onChange={(e) => setDraftDeceased(e.target.value)} /></div>
@@ -227,7 +262,6 @@ export default function PersonDetailRoute() {
         </div>
       )}
 
-      {/* Tab pill row */}
       {!editing && (
         <>
           <div className="tab-row" style={{ marginTop: "var(--space-4)" }}>
@@ -243,87 +277,62 @@ export default function PersonDetailRoute() {
           </div>
 
           {tab === "profile" && (
-            <div className="card">
-              {person.notes_markdown ? (
-                <p style={{ whiteSpace: "pre-wrap", margin: 0 }}>{person.notes_markdown}</p>
-              ) : (
-                <p className="muted" style={{ margin: 0 }}>No notes yet. Tap Edit to add some.</p>
-              )}
-              {(person.birthday || person.deceased_at) && (
-                <div className="divider" />
-              )}
-              {person.birthday && (
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <span className="muted">Birthday</span>
-                  <span>{new Date(person.birthday).toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" })}</span>
-                </div>
-              )}
-              {person.deceased_at && (
-                <div style={{ display: "flex", justifyContent: "space-between", marginTop: "var(--space-2)" }}>
-                  <span className="muted">Passed</span>
-                  <span>{new Date(person.deceased_at).toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" })}</span>
-                </div>
-              )}
-            </div>
-          )}
-
-          {tab === "properties" && (
             <>
-              {approved.length === 0 && pending.length === 0 ? (
+              {/* Notes (free text) */}
+              {person.notes_markdown && (
+                <div className="card">
+                  <p style={{ whiteSpace: "pre-wrap", margin: 0 }}>{person.notes_markdown}</p>
+                </div>
+              )}
+
+              {/* Properties grouped by topic — only non-null approved values */}
+              {topicsToRender.length === 0 ? (
                 <div className="card" style={{ textAlign: "center" }}>
-                  <p className="muted">No properties yet. Write a journal entry tagged to this person and the AI will start extracting.</p>
-                  <Link to="/entries/new"><button className="primary-pill">Write an entry</button></Link>
+                  <p className="muted" style={{ margin: 0 }}>
+                    {pendingCount > 0 ? (
+                      <>No approved properties yet. <Link to="/review">Review {pendingCount} pending</Link>.</>
+                    ) : (
+                      <>No properties yet. Write a journal entry tagged to this person.</>
+                    )}
+                  </p>
                 </div>
               ) : (
-                <>
-                  {approved.length > 0 && (
-                    <div className="card">
-                      {approved.map((pp, i) => (
+                topicsToRender.map((topic) => {
+                  const rows = propsByTopic.get(topic)!;
+                  return (
+                    <div key={topic} className="card">
+                      <h3 style={{ margin: "0 0 var(--space-2)", fontSize: "var(--text-h3)" }}>
+                        {TOPIC_LABEL[topic] ?? topic}
+                      </h3>
+                      {rows.map((pp, i) => (
                         <div key={pp.id}>
-                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", padding: "var(--space-2) 0" }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", padding: "var(--space-2) 0", gap: "var(--space-3)" }}>
                             <span className="muted">{pp.property_def_name.replace(/_/g, " ")}</span>
-                            <span style={{ fontWeight: 500 }}>{pp.value_text}</span>
+                            <span style={{ fontWeight: 500, textAlign: "right" }}>{pp.value_text}</span>
                           </div>
-                          {i < approved.length - 1 && <div className="divider" style={{ margin: 0 }} />}
+                          {i < rows.length - 1 && <div className="divider" style={{ margin: 0 }} />}
                         </div>
                       ))}
                     </div>
-                  )}
-                  {pending.length > 0 && (
-                    <div className="card">
-                      <div className="row row--between" style={{ marginBottom: "var(--space-2)" }}>
-                        <h3 style={{ margin: 0, fontSize: "var(--text-h3)" }}>Pending review</h3>
-                        <Link to="/review">Review →</Link>
-                      </div>
-                      {pending.map((pp, i) => (
-                        <div key={pp.id}>
-                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", padding: "var(--space-2) 0" }}>
-                            <div>
-                              <span className="muted">{pp.property_def_name.replace(/_/g, " ")}</span>
-                              <div style={{ fontWeight: 500 }}>{pp.value_text}</div>
-                            </div>
-                            <span className="chip">conf {pp.ai_confidence.toFixed(2)}</span>
-                          </div>
-                          {i < pending.length - 1 && <div className="divider" style={{ margin: 0 }} />}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </>
+                  );
+                })
               )}
-            </>
-          )}
 
-          {tab === "associations" && (
-            <AssociationsPanel personId={personId} />
-          )}
+              {pendingCount > 0 && topicsToRender.length > 0 && (
+                <div className="muted" style={{ textAlign: "center", marginBottom: "var(--space-4)" }}>
+                  <Link to="/review">{pendingCount} pending property value{pendingCount === 1 ? "" : "s"} →</Link>
+                </div>
+              )}
 
-          {tab === "memberships" && (
-            <>
+              {/* Associations */}
+              <h2 style={{ marginTop: "var(--space-6)", marginBottom: "var(--space-2)" }}>Associations</h2>
+              <AssociationsPanel personId={personId} />
+
+              {/* Memberships */}
+              <h2 style={{ marginTop: "var(--space-6)", marginBottom: "var(--space-2)" }}>Memberships</h2>
               {memberships.length === 0 ? (
                 <div className="card" style={{ textAlign: "center" }}>
-                  <p className="muted">No org memberships yet.</p>
-                  <Link to="/orgs"><button className="secondary">View organizations</button></Link>
+                  <p className="muted" style={{ margin: 0 }}>No org memberships yet.</p>
                 </div>
               ) : (
                 <div className="card">
@@ -344,7 +353,7 @@ export default function PersonDetailRoute() {
             </>
           )}
 
-          {tab === "journal" && (
+          {tab === "entries" && (
             <>
               {entries.length === 0 ? (
                 <div className="card" style={{ textAlign: "center" }}>

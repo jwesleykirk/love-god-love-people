@@ -11,6 +11,7 @@ class PropertyDefSerializer(serializers.ModelSerializer):
             "name",
             "description",
             "data_type_hint",
+            "topic",
             "status",
             "first_proposed_at",
             "first_proposed_from_entry",
@@ -30,6 +31,7 @@ class PropertyDefSerializer(serializers.ModelSerializer):
 
 class PersonPropertySerializer(serializers.ModelSerializer):
     property_def_name = serializers.CharField(source="property_def.name", read_only=True)
+    property_def_topic = serializers.CharField(source="property_def.topic", read_only=True)
     person_name = serializers.CharField(source="person.full_name", read_only=True)
 
     class Meta:
@@ -40,6 +42,7 @@ class PersonPropertySerializer(serializers.ModelSerializer):
             "person_name",
             "property_def",
             "property_def_name",
+            "property_def_topic",
             "value_text",
             "ai_confidence",
             "source_entry",
@@ -53,6 +56,7 @@ class PersonPropertySerializer(serializers.ModelSerializer):
             "id",
             "person_name",
             "property_def_name",
+            "property_def_topic",
             "ai_confidence",
             "source_entry",
             "prompt_version",
