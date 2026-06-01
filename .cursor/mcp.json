@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "ChatPRD": {
+      "command": "npx",
+      "args": ["mcp-remote", "https://app.chatprd.ai/mcp"]
+    }
+  }
+}
