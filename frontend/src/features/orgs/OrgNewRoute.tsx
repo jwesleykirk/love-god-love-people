@@ -42,29 +42,21 @@ export default function OrgNewRoute() {
   return (
     <main className="container">
       <h1>Add organization</h1>
-      <form onSubmit={submit} className="stack">
-        <div>
-          <label>Name</label>
-          <input value={name} onChange={(e) => setName(e.target.value)} autoFocus />
-        </div>
-        <div>
-          <label>Type</label>
+      <form onSubmit={submit} className="card stack">
+        <div><label>Name</label><input value={name} onChange={(e) => setName(e.target.value)} autoFocus /></div>
+        <div><label>Type</label>
           <select value={orgType} onChange={(e) => setOrgType(e.target.value as OrgType)}>
             {ORG_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
           </select>
         </div>
-        <div>
-          <label>Parent organization (optional)</label>
+        <div><label>Parent organization (optional)</label>
           <select value={parent} onChange={(e) => setParent(e.target.value ? Number(e.target.value) : "")}>
             <option value="">— none —</option>
             {parents.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
           </select>
         </div>
-        <div>
-          <label>Notes</label>
-          <textarea value={notes} onChange={(e) => setNotes(e.target.value)} />
-        </div>
-        {error && <p style={{ color: "crimson" }}>{error}</p>}
+        <div><label>Notes</label><textarea value={notes} onChange={(e) => setNotes(e.target.value)} /></div>
+        {error && <p style={{ color: "var(--color-warning)" }}>{error}</p>}
         <button type="submit" disabled={busy || !name.trim()}>{busy ? "Saving…" : "Save"}</button>
       </form>
     </main>

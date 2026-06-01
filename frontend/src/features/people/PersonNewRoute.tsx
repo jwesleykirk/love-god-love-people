@@ -36,7 +36,7 @@ export default function PersonNewRoute() {
   return (
     <main className="container">
       <h1>Add person</h1>
-      <form onSubmit={submit} className="stack">
+      <form onSubmit={submit} className="card stack">
         <div><label>Full name</label><input value={fullName} onChange={(e) => setFullName(e.target.value)} autoFocus /></div>
         <div><label>Preferred name (optional)</label><input value={preferredName} onChange={(e) => setPreferredName(e.target.value)} /></div>
         <div><label>Relationship</label>
@@ -51,7 +51,7 @@ export default function PersonNewRoute() {
         </div>
         <div><label>Birthday (optional)</label><input type="date" value={birthday} onChange={(e) => setBirthday(e.target.value)} /></div>
         <div><label>Notes</label><textarea value={notes} onChange={(e) => setNotes(e.target.value)} /></div>
-        {error && <p style={{ color: "crimson" }}>{error}</p>}
+        {error && <p style={{ color: "var(--color-warning)" }}>{error}</p>}
         <button type="submit" disabled={busy}>{busy ? "Saving…" : "Save"}</button>
       </form>
     </main>

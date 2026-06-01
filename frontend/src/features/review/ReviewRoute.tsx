@@ -22,15 +22,27 @@ import { RELATIONSHIP_CATEGORIES, type RelationshipCategory } from "../people/ap
 
 type Tab = "values" | "definitions" | "persons";
 
+const TABS: Array<{ value: Tab; label: string }> = [
+  { value: "values", label: "Pending values" },
+  { value: "definitions", label: "New properties" },
+  { value: "persons", label: "Proposed people" },
+];
+
 export default function ReviewRoute() {
   const [tab, setTab] = useState<Tab>("values");
   return (
     <main className="container">
       <h1>Review</h1>
-      <div className="row" style={{ gap: "0.4rem", marginBottom: "1rem", flexWrap: "wrap" }}>
-        <button onClick={() => setTab("values")} className={tab === "values" ? "" : "secondary"}>Pending values</button>
-        <button onClick={() => setTab("definitions")} className={tab === "definitions" ? "" : "secondary"}>New properties</button>
-        <button onClick={() => setTab("persons")} className={tab === "persons" ? "" : "secondary"}>Proposed people</button>
+      <div className="tab-row">
+        {TABS.map((t) => (
+          <button
+            key={t.value}
+            onClick={() => setTab(t.value)}
+            className={tab === t.value ? "tab tab--active" : "tab"}
+          >
+            {t.label}
+          </button>
+        ))}
       </div>
       {tab === "values" && <PendingValuesPane />}
       {tab === "definitions" && <NewPropertyDefsPane />}
@@ -55,50 +67,69 @@ function PendingValuesPane() {
     setBusyId(id);
     try { await fn(); await refresh(); } finally { setBusyId(null); }
   }
-  if (error) return <p style={{ color: "crimson" }}>{error}</p>;
+  if (error) return <p style={{ color: "var(--color-warning)" }}>{error}</p>;
   if (!data) return <p className="muted">Loading…</p>;
 
   return (
     <>
-      <p className="muted">AI-extracted property values. Approve, edit, or reject each one.</p>
+      <p className="muted" style={{ marginBottom: "var(--space-4)" }}>
+        AI-extracted property values from your journal entries. Approve, edit, or reject each one.
+      </p>
+
       {data.errors.length > 0 && (
-        <section style={{ marginTop: "1.5rem" }}>
-          <h2>Extraction errors</h2>
+        <section style={{ marginBottom: "var(--space-6)" }}>
+          <h3 style={{ fontSize: "var(--text-h3)" }}>Extraction errors</h3>
           {data.errors.map((e) => (
-            <div className="card" key={e.entry_id}>
-              <div className="muted" style={{ fontSize: "0.8rem" }}>
-                {new Date(e.entry_created_at).toLocaleString()} · entry #{e.entry_id}
+            <div className="card" key={e.entry_id} style={{ borderLeft: "3px solid var(--color-warning)" }}>
+              <div className="muted" style={{ fontSize: "var(--text-caption)", marginBottom: "var(--space-2)" }}>
+                {new Date(e.entry_created_at).toLocaleString()}
               </div>
-              <div style={{ whiteSpace: "pre-wrap", marginTop: "0.3rem" }}>{e.entry_content}</div>
-              <div style={{ color: "var(--bad)", marginTop: "0.5rem", fontSize: "0.85rem" }}>{e.error}</div>
+              <div style={{ whiteSpace: "pre-wrap", marginBottom: "var(--space-2)" }}>{e.entry_content}</div>
+              <div style={{ color: "var(--color-warning)", fontSize: "var(--text-label)" }}>{e.error}</div>
             </div>
           ))}
         </section>
       )}
+
       {data.entries.length === 0 ? (
-        <p className="muted" style={{ marginTop: "2rem" }}>Nothing to review here.</p>
+        <div className="card" style={{ textAlign: "center" }}>
+          <p className="muted">Nothing to review.</p>
+        </div>
       ) : (
         data.entries.map((group) => (
-          <section key={group.entry_id ?? "orphan"} className="card">
-            <div className="muted" style={{ fontSize: "0.8rem" }}>
+          <div key={group.entry_id ?? "orphan"} className="card">
+            <div className="muted" style={{ fontSize: "var(--text-caption)", marginBottom: "var(--space-2)" }}>
               {group.entry_created_at && new Date(group.entry_created_at).toLocaleString()}
-              {" · "}<span className="pill">{group.prompt_version}</span>{" "}
-              <span className="pill">{group.model}</span>
+              {" · "}
+              <span className="chip" style={{ marginRight: "var(--space-1)" }}>{group.prompt_version}</span>
+              <span className="chip">{group.model}</span>
             </div>
-            <div style={{ whiteSpace: "pre-wrap", margin: "0.5rem 0 1rem" }}>{group.entry_content}</div>
-            <ul className="bare">
-              {group.values.map((v) => (
+            <div style={{
+              whiteSpace: "pre-wrap",
+              padding: "var(--space-3)",
+              background: "var(--color-bg)",
+              borderRadius: "var(--radius-md)",
+              fontStyle: "italic",
+              fontFamily: "var(--font-serif)",
+              fontSize: "var(--text-body)",
+              marginBottom: "var(--space-4)",
+              borderLeft: "3px solid var(--color-border-strong)",
+            }}>
+              "{group.entry_content}"
+            </div>
+            {group.values.map((v, i) => (
+              <div key={v.id}>
                 <PendingRow
-                  key={v.id}
                   value={v}
                   busy={busyId === v.id}
                   onApprove={() => act(v.id, () => approveProperty(v.id))}
                   onReject={() => act(v.id, () => rejectProperty(v.id))}
                   onEdit={(text) => act(v.id, () => editPropertyValue(v.id, text))}
                 />
-              ))}
-            </ul>
-          </section>
+                {i < group.values.length - 1 && <div className="divider" style={{ margin: 0 }} />}
+              </div>
+            ))}
+          </div>
         ))
       )}
     </>
@@ -114,32 +145,37 @@ function PendingRow({ value, busy, onApprove, onReject, onEdit }: {
 }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value.value_text);
+
   return (
-    <li>
-      <div>
-        <strong>{value.person_name}</strong> · <em>{value.property_def_name}:</em>{" "}
+    <div style={{ padding: "var(--space-3) 0" }}>
+      <div style={{ marginBottom: "var(--space-2)" }}>
+        <div className="muted" style={{ fontSize: "var(--text-caption)" }}>
+          {value.person_name} · {value.property_def_name.replace(/_/g, " ")}
+        </div>
         {editing ? (
-          <input value={draft} onChange={(e) => setDraft(e.target.value)} style={{ display: "inline-block", width: "60%" }} />
+          <input value={draft} onChange={(e) => setDraft(e.target.value)} style={{ marginTop: "var(--space-1)" }} />
         ) : (
-          <span>{value.value_text}</span>
+          <div style={{ fontWeight: 500, fontSize: "var(--text-body-lg)", marginTop: 2 }}>{value.value_text}</div>
         )}
-        <span className="pill" style={{ marginLeft: "0.5rem" }}>conf {value.ai_confidence.toFixed(2)}</span>
+        <div style={{ marginTop: "var(--space-1)" }}>
+          <span className="chip">conf {value.ai_confidence.toFixed(2)}</span>
+        </div>
       </div>
-      <div className="row" style={{ marginTop: "0.4rem", gap: "0.4rem" }}>
+      <div className="row" style={{ gap: "var(--space-2)" }}>
         {editing ? (
           <>
-            <button disabled={busy} onClick={() => onEdit(draft)}>Save</button>
-            <button className="secondary" onClick={() => { setEditing(false); setDraft(value.value_text); }}>Cancel</button>
+            <button disabled={busy} onClick={() => onEdit(draft)} style={{ padding: "var(--space-2) var(--space-4)", fontSize: "var(--text-label)" }}>Save</button>
+            <button className="secondary" onClick={() => { setEditing(false); setDraft(value.value_text); }} style={{ padding: "var(--space-2) var(--space-4)", fontSize: "var(--text-label)" }}>Cancel</button>
           </>
         ) : (
           <>
-            <button disabled={busy} onClick={onApprove}>Approve</button>
-            <button className="secondary" disabled={busy} onClick={() => setEditing(true)}>Edit</button>
-            <button className="danger" disabled={busy} onClick={onReject}>Reject</button>
+            <button className="primary-pill" disabled={busy} onClick={onApprove} style={{ padding: "var(--space-2) var(--space-4)", fontSize: "var(--text-label)" }}>Approve</button>
+            <button className="secondary" disabled={busy} onClick={() => setEditing(true)} style={{ padding: "var(--space-2) var(--space-4)", fontSize: "var(--text-label)" }}>Edit</button>
+            <button className="danger" disabled={busy} onClick={onReject} style={{ padding: "var(--space-2) var(--space-4)", fontSize: "var(--text-label)" }}>Reject</button>
           </>
         )}
       </div>
-    </li>
+    </div>
   );
 }
 
@@ -161,12 +197,16 @@ function NewPropertyDefsPane() {
     setBusyId(id);
     try { await fn(); await refresh(); } finally { setBusyId(null); }
   }
-  if (error) return <p style={{ color: "crimson" }}>{error}</p>;
+  if (error) return <p style={{ color: "var(--color-warning)" }}>{error}</p>;
   return (
     <>
-      <p className="muted">Brand-new property types proposed by AI. Keep, rename, merge, or archive.</p>
+      <p className="muted" style={{ marginBottom: "var(--space-4)" }}>
+        Brand-new property types the AI proposed. Keep, rename, merge, or archive.
+      </p>
       {items.length === 0 ? (
-        <p className="muted" style={{ marginTop: "2rem" }}>Nothing new to review.</p>
+        <div className="card" style={{ textAlign: "center" }}>
+          <p className="muted">Nothing new to review.</p>
+        </div>
       ) : items.map((pd) => (
         <PropertyDefRow
           key={pd.id}
@@ -197,22 +237,25 @@ function PropertyDefRow({ pd, busy, activeDefs, onKeep, onArchive, onRename, onM
   const [draftDesc, setDraftDesc] = useState(pd.description);
   const [mergeTarget, setMergeTarget] = useState<number | "">("");
   return (
-    <section className="card">
-      <div className="muted" style={{ fontSize: "0.8rem" }}>
-        proposed {new Date(pd.first_proposed_at).toLocaleString()}{" · "}
-        <span className="pill">{pd.data_type_hint}</span>{" "}
-        <span className="pill">conf {pd.ai_confidence_on_creation.toFixed(2)}</span>{" "}
-        <span className="pill">used {pd.usage_count}×</span>
+    <div className="card">
+      <div className="muted" style={{ fontSize: "var(--text-caption)", marginBottom: "var(--space-2)" }}>
+        proposed {new Date(pd.first_proposed_at).toLocaleString()}
       </div>
-      <div style={{ margin: "0.5rem 0" }}>
-        <strong>{pd.name}</strong>
-        {pd.description && <div className="muted">{pd.description}</div>}
+      <div style={{ marginBottom: "var(--space-3)" }}>
+        <div style={{ fontWeight: 500, fontSize: "var(--text-body-lg)", fontFamily: "var(--font-serif)" }}>{pd.name.replace(/_/g, " ")}</div>
+        {pd.description && <div className="muted" style={{ marginTop: 2 }}>{pd.description}</div>}
       </div>
+      <div className="row row--wrap" style={{ gap: "var(--space-1)", marginBottom: "var(--space-3)" }}>
+        <span className="chip">{pd.data_type_hint}</span>
+        <span className="chip">conf {pd.ai_confidence_on_creation.toFixed(2)}</span>
+        <span className="chip">used {pd.usage_count}×</span>
+      </div>
+
       {mode === "rename" && (
         <div className="stack">
           <div><label>Name</label><input value={draftName} onChange={(e) => setDraftName(e.target.value)} /></div>
           <div><label>Description</label><input value={draftDesc} onChange={(e) => setDraftDesc(e.target.value)} /></div>
-          <div className="row" style={{ gap: "0.4rem" }}>
+          <div className="row" style={{ gap: "var(--space-2)" }}>
             <button disabled={busy || !draftName.trim()} onClick={() => onRename(draftName.trim(), draftDesc)}>Save</button>
             <button className="secondary" onClick={() => { setMode("default"); setDraftName(pd.name); setDraftDesc(pd.description); }}>Cancel</button>
           </div>
@@ -225,25 +268,25 @@ function PropertyDefRow({ pd, busy, activeDefs, onKeep, onArchive, onRename, onM
             <option value="">— pick —</option>
             {activeDefs.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
           </select>
-          <div className="row" style={{ gap: "0.4rem" }}>
+          <div className="row" style={{ gap: "var(--space-2)" }}>
             <button disabled={busy || !mergeTarget} onClick={() => mergeTarget && onMerge(mergeTarget)}>Merge</button>
             <button className="secondary" onClick={() => { setMode("default"); setMergeTarget(""); }}>Cancel</button>
           </div>
         </div>
       )}
       {mode === "default" && (
-        <div className="row" style={{ gap: "0.4rem", flexWrap: "wrap" }}>
-          <button disabled={busy} onClick={onKeep}>Keep</button>
-          <button className="secondary" disabled={busy} onClick={() => setMode("rename")}>Rename</button>
-          <button className="secondary" disabled={busy || activeDefs.length === 0} onClick={() => setMode("merge")}>Merge</button>
-          <button className="danger" disabled={busy} onClick={onArchive}>Archive</button>
+        <div className="row row--wrap" style={{ gap: "var(--space-2)" }}>
+          <button className="primary-pill" disabled={busy} onClick={onKeep} style={{ padding: "var(--space-2) var(--space-4)", fontSize: "var(--text-label)" }}>Keep</button>
+          <button className="secondary" disabled={busy} onClick={() => setMode("rename")} style={{ padding: "var(--space-2) var(--space-4)", fontSize: "var(--text-label)" }}>Rename</button>
+          <button className="secondary" disabled={busy || activeDefs.length === 0} onClick={() => setMode("merge")} style={{ padding: "var(--space-2) var(--space-4)", fontSize: "var(--text-label)" }}>Merge</button>
+          <button className="danger" disabled={busy} onClick={onArchive} style={{ padding: "var(--space-2) var(--space-4)", fontSize: "var(--text-label)" }}>Archive</button>
         </div>
       )}
-    </section>
+    </div>
   );
 }
 
-// ---------- Proposed Persons (v0.3) ----------
+// ---------- Proposed Persons ----------
 
 function ProposedPersonsPane() {
   const [items, setItems] = useState<ProposedPerson[]>([]);
@@ -264,16 +307,17 @@ function ProposedPersonsPane() {
     try { await fn(); await refresh(); } finally { setBusyId(null); }
   }
 
-  if (error) return <p style={{ color: "crimson" }}>{error}</p>;
+  if (error) return <p style={{ color: "var(--color-warning)" }}>{error}</p>;
 
   return (
     <>
-      <p className="muted">
-        People the AI detected in journal entries but you didn't tag.
-        Create as a real Person record (associations + properties materialize), or reject.
+      <p className="muted" style={{ marginBottom: "var(--space-4)" }}>
+        People the AI detected in journal entries but you didn't tag. Create or reject.
       </p>
       {items.length === 0 ? (
-        <p className="muted" style={{ marginTop: "2rem" }}>Nothing to review.</p>
+        <div className="card" style={{ textAlign: "center" }}>
+          <p className="muted">Nothing to review.</p>
+        </div>
       ) : items.map((p) => (
         <ProposedPersonRow
           key={p.id}
@@ -299,44 +343,50 @@ function ProposedPersonRow({ proposal, busy, onCreate, onReject }: {
   const properties = payload.properties || [];
 
   return (
-    <section className="card">
-      <div className="muted" style={{ fontSize: "0.8rem" }}>
-        from entry {new Date(proposal.source_entry_created_at).toLocaleString()}{" · "}
-        <span className="pill">{proposal.prompt_version}</span>{" "}
-        <span className="pill">conf {proposal.ai_confidence.toFixed(2)}</span>
+    <div className="card">
+      <div className="muted" style={{ fontSize: "var(--text-caption)", marginBottom: "var(--space-2)" }}>
+        from entry {new Date(proposal.source_entry_created_at).toLocaleString()}
       </div>
-      <div style={{ margin: "0.5rem 0" }}>
-        <strong>{proposal.full_name}</strong>
-        {proposal.life_stage && <span className="pill" style={{ marginLeft: "0.5rem" }}>{proposal.life_stage.replace("_", " ")}</span>}
+      <div style={{ marginBottom: "var(--space-3)" }}>
+        <div style={{ fontWeight: 600, fontSize: "var(--text-h3)", fontFamily: "var(--font-serif)" }}>{proposal.full_name}</div>
+        <div className="row row--wrap" style={{ gap: "var(--space-1)", marginTop: 4 }}>
+          {proposal.life_stage && <span className="chip">{proposal.life_stage.replace("_", " ")}</span>}
+          <span className="chip">conf {proposal.ai_confidence.toFixed(2)}</span>
+        </div>
       </div>
+
       {associations.length > 0 && (
-        <div className="muted" style={{ fontSize: "0.85rem", margin: "0.4rem 0" }}>
-          Proposed relationships: {associations.map((a, i) => (
-            <span key={i}>
-              {i > 0 && ", "}
+        <div style={{ marginBottom: "var(--space-3)" }}>
+          <div className="muted" style={{ fontSize: "var(--text-caption)", marginBottom: "var(--space-1)" }}>Proposed relationships</div>
+          {associations.map((a, i) => (
+            <div key={i} style={{ fontSize: "var(--text-label)" }}>
               <em>{a.association_type.replace(/_/g, " ")}</em> → person #{a.to_person_id}
-            </span>
+            </div>
           ))}
         </div>
       )}
+
       {properties.length > 0 && (
-        <div className="muted" style={{ fontSize: "0.85rem", margin: "0.4rem 0" }}>
-          Proposed properties: {properties.map((p, i) => (
-            <span key={i}>
-              {i > 0 && ", "}
-              {p.property_name} = {p.value}
-            </span>
+        <div style={{ marginBottom: "var(--space-3)" }}>
+          <div className="muted" style={{ fontSize: "var(--text-caption)", marginBottom: "var(--space-1)" }}>Proposed properties</div>
+          {properties.map((p, i) => (
+            <div key={i} style={{ fontSize: "var(--text-label)" }}>
+              <span className="muted">{p.property_name.replace(/_/g, " ")}:</span> {p.value}
+            </div>
           ))}
         </div>
       )}
-      <div className="row" style={{ marginTop: "0.4rem", gap: "0.4rem", alignItems: "center" }}>
-        <label style={{ margin: 0 }}>Relationship:</label>
-        <select value={category} onChange={(e) => setCategory(e.target.value as RelationshipCategory)} style={{ width: "auto" }}>
+
+      <div className="divider" />
+
+      <div className="row row--wrap" style={{ gap: "var(--space-2)", alignItems: "center" }}>
+        <label style={{ margin: 0, fontSize: "var(--text-label)" }}>As:</label>
+        <select value={category} onChange={(e) => setCategory(e.target.value as RelationshipCategory)} style={{ width: "auto", flexShrink: 0 }}>
           {RELATIONSHIP_CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
         </select>
-        <button disabled={busy} onClick={() => onCreate(category)}>Create</button>
-        <button className="danger" disabled={busy} onClick={onReject}>Reject</button>
+        <button className="primary-pill" disabled={busy} onClick={() => onCreate(category)} style={{ padding: "var(--space-2) var(--space-4)", fontSize: "var(--text-label)" }}>Create</button>
+        <button className="danger" disabled={busy} onClick={onReject} style={{ padding: "var(--space-2) var(--space-4)", fontSize: "var(--text-label)" }}>Reject</button>
       </div>
-    </section>
+    </div>
   );
 }
