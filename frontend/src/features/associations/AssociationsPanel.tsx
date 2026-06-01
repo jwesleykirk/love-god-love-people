@@ -67,7 +67,9 @@ export function AssociationsPanel({ personId }: Props) {
   }
 
   const typeItems = associationTypeItems(types);
-  const associatedPersonIds = associations.map((a) => a.to_person);
+  const associatedPersonIds = associations
+    .filter((a) => a.association_type === draftType)
+    .map((a) => a.to_person);
 
   if (associations.length === 0 && !showAdd) {
     return (
