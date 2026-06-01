@@ -259,7 +259,10 @@ LOGGING = {
     },
 }
 
-# Register PWA manifest MIME so WhiteNoise serves it as application/manifest+json,
-# not the default octet-stream. Browsers (esp. Chrome) require the right MIME.
+# PWA manifest MIME — WhiteNoise's own mimetypes table needs this explicit override
+# so .webmanifest serves as application/manifest+json rather than octet-stream.
 import mimetypes
 mimetypes.add_type("application/manifest+json", ".webmanifest")
+WHITENOISE_MIMETYPES = {
+    ".webmanifest": "application/manifest+json",
+}
