@@ -52,13 +52,14 @@ Wesley struggles to remember names, faces, and the personal details of people he
 | 1.1 — UX polish | Person edit form, entry processing-status indicator, New Property Definitions review surface | **shipped (v0.1.1)** |
 | 1.5 — Foundational graph | Organizations + hierarchy, OrganizationMembership, PersonAssociation typed edges (22 seeded types), entries tag orgs, life_stage, birthday, deceased_at | **shipped (v0.2)** |
 | 1.7 — Extraction discipline | ProposedPerson workflow (AI proposes new Person records for un-tagged people), prompt v2 (uncertainty discipline, plural-pronoun expansion), audit history via django-simple-history, approximate_birth_year supersession | **shipped (v0.3)** |
+| 1.8 — Prayer-ready property baseline | prompt v2.2 standardized prayer/recall names, seed migration for core prayer properties (`current_prayer_requests`, `current_stressors`, `upcoming_life_events`, `health_concerns`, `family_concerns`, `spiritual_state`, plus `religion`) | **shipped (v0.3 patch)** |
 | 2 — Spaced repetition | Flag properties for review, daily queue, Anki-style intervals | planned |
 | 3 — Prayer engine | Frequency per person (daily/weekly/monthly/none), daily queue, mark-as-prayed | planned |
 | 4 — Photos | Object storage, face on profile, photo-name flashcards | planned |
 | 5 — Private Swift iOS | Native Swift client, TestFlight, Sign in with Apple | planned |
 | 6 — App Store | Multi-user, auth hardening, privacy, App Store review | planned |
 
-## Architecture (current, post-v0.3)
+## Architecture (current, post-v0.3 patches)
 
 - **Stack:** Django 5 + DRF + Postgres, React + Vite, Railway. See `_docs/architecture.md` for the canonical explainer.
 - **Auth:** Google OAuth via `django-allauth`, email allowlist.

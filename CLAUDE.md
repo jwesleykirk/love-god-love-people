@@ -68,6 +68,17 @@ Three load-bearing patterns. All documented in detail in `_docs/architecture.md`
 
 When in doubt, the brief wins. When the brief and a hard rule disagree, surface the conflict.
 
+## Current implementation snapshot (post v0.3 patches)
+
+- Active extraction prompt is **`apps/extraction/prompts/v2_2.py`** (imported by `apps/extraction/tasks.py`).
+- Prompt v2.2 keeps v2.1 discipline rules and adds standardized prayer/recall property names.
+- Seeded PropertyDefs currently include:
+  - school/birth baseline: `current_school_type`, `current_school_name`, `approximate_birth_year`
+  - prayer/core baseline: `loves_music`, `religion`, `current_prayer_requests`, `current_stressors`, `upcoming_life_events`, `health_concerns`, `family_concerns`, `spiritual_state`
+- Seed migrations:
+  - `apps/properties/migrations/0003_seed_standard_property_defs.py`
+  - `apps/properties/migrations/0004_seed_prayer_and_core_property_defs.py`
+
 ## Common commands
 
 ```bash

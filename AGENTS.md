@@ -38,3 +38,12 @@ Read in this order:
 - Repo: https://github.com/jwesleykirk/love-god-love-people
 - Brief (canonical): ChatPRD document UUID `a1381cd7-b390-49b3-9090-20a615a2084d`
 - Live: https://web-production-0bdba.up.railway.app
+
+## Current handoff notes
+
+- Active extraction prompt is `backend/apps/extraction/prompts/v2_2.py`.
+- v2.2 keeps uncertainty/plural-pronoun discipline and expands standardized names for prayer/readiness.
+- Seeded PropertyDefs are provided by:
+  - `backend/apps/properties/migrations/0003_seed_standard_property_defs.py`
+  - `backend/apps/properties/migrations/0004_seed_prayer_and_core_property_defs.py`
+- Core seeded prayer-oriented names: `current_prayer_requests`, `current_stressors`, `upcoming_life_events`, `health_concerns`, `family_concerns`, `spiritual_state`, plus `religion`.

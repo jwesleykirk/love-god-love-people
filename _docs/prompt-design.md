@@ -1,6 +1,6 @@
 # Prompt design
 
-Lives in `apps/extraction/prompts/v{N}.py`. The active version is imported by `apps/extraction/tasks.py`. Old versions stay in the tree for diffing and regression analysis.
+Lives in `apps/extraction/prompts/v{N}.py`. The active version is imported by `apps/extraction/tasks.py` (currently `v2_2`). Old versions stay in the tree for diffing and regression analysis.
 
 The `PersonProperty.prompt_version` and `model` columns carry the version used to produce each row, so the Review Console can show provenance per extraction.
 

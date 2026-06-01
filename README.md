@@ -59,6 +59,7 @@ Both off by default so a fresh Railway deploy boots without any secrets configur
 - **v0.1.1** — Person edit form, entry processing-status indicator, New Property Definitions review surface.
 - **v0.2** — Foundational graph: Organizations (n-level parent hierarchy), OrganizationMembership (typed join with temporal validity), AssociationType (21 seeded types — spouse_of, parent_of, mentor_of, etc.), PersonAssociation (two-row storage), entries can tag orgs alongside people, Person.life_stage / birthday / deceased_at, extraction prompt v1.
 - **v0.3** — ProposedPerson workflow (AI proposes new Person records for un-tagged people), Review Console third tab "Proposed People", audit history via `django-simple-history`, extraction prompt v2 with uncertainty discipline + plural-pronoun expansion + standardized property names, `approximate_birth_year` PropertyDef with automatic supersession when `Person.birthday` is set.
+- **v0.3 prayer-ready patch** — extraction prompt `v2.2` (keeps v2.1 discipline rules, adds standardized prayer/recall keys), and seeded core PropertyDefs for prayer queue readiness: `loves_music`, `religion`, `current_prayer_requests`, `current_stressors`, `upcoming_life_events`, `health_concerns`, `family_concerns`, `spiritual_state`.
 
 ## Planned
 
@@ -67,3 +68,14 @@ Both off by default so a fresh Railway deploy boots without any secrets configur
 - **Phase 4** — Photos + face-name flashcards
 - **Phase 5** — Private Swift iOS app via TestFlight
 - **Phase 6** — App Store distribution
+
+## Current handoff state (for coding agents)
+
+- Active extraction prompt import is `backend/apps/extraction/prompts/v2_2.py` via `backend/apps/extraction/tasks.py`.
+- Prompt design history and regression expectations live in `_docs/prompt-design.md`.
+- Seeded PropertyDefs now come from:
+  - `backend/apps/properties/migrations/0003_seed_standard_property_defs.py`
+  - `backend/apps/properties/migrations/0004_seed_prayer_and_core_property_defs.py`
+- Next implementation target is Prayer Engine (Phase 3), which should consume:
+  - `future.PrayerSchedule` for cadence/due logic
+  - latest approved/recent `PersonProperty` rows for request context.

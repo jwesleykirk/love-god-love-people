@@ -132,6 +132,12 @@ Two flags. Both default off so a fresh Railway deploy can boot before any secret
 
 This lets Wesley get a working URL up before he's done with Google Cloud Console or OpenRouter signup.
 
+## Phase 2/3 handoff notes
+
+- **Spaced repetition (Phase 2)** currently schedules only `PersonProperty` rows via `future.ReviewMemo`; first-class graph facts (associations/memberships) are not yet memo-scheduled.
+- **Prayer engine (Phase 3)** already has cadence scaffolding in `future.PrayerSchedule` (`frequency`, `last_prayed_at`, `next_due_at`) and should pair it with recent approved/relevant `PersonProperty` values.
+- Prompt/seed baseline has been prepared for prayer context via v2.2 and seeded prayer-oriented `PropertyDef` names.
+
 ## Source-typing convention for audit history
 
 When viewing the historical record list for any model, every row carries a `change_reason` string. The convention:
