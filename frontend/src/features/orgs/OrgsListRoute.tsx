@@ -1,12 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { listOrgs, ORG_TYPES, type Organization, type OrgType } from "./api";
+import { orgTypeFilterItems } from "@/components/OrgPicker";
+import { SearchPicker } from "@/components/SearchPicker";
+import { listOrgs, type Organization, type OrgType } from "./api";
 import { Illustration } from "@/components/Illustration";
-
-const FILTERS: Array<{ value: OrgType | ""; label: string }> = [
-  { value: "", label: "All" },
-  ...ORG_TYPES,
-];
 
 const ORG_TYPE_LABEL: Record<string, string> = {
   church: "Church",
@@ -48,9 +45,16 @@ export default function OrgsListRoute() {
       </div>
       <div className="row row--wrap" style={{ marginBottom: "var(--space-4)", gap: "var(--space-2)" }}>
         <input placeholder="Search…" value={q} onChange={(e) => setQ(e.target.value)} style={{ flex: 1, minWidth: 200 }} />
-        <select value={orgType} onChange={(e) => setOrgType(e.target.value as OrgType | "")} style={{ width: "auto", flexShrink: 0 }}>
-          {FILTERS.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
-        </select>
+        <div className="search-picker--inline">
+          <SearchPicker
+            items={orgTypeFilterItems()}
+            value={orgType}
+            onChange={(id) => setOrgType(id as OrgType | "")}
+            lockWhenSelected={false}
+            placeholder="Filter type…"
+            listAriaLabel="Organization types"
+          />
+        </div>
       </div>
       {error && <p className="muted" style={{ color: "var(--color-warning)" }}>{error}</p>}
       {orgs.length === 0 ? (

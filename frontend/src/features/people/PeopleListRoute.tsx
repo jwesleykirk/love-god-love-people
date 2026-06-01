@@ -1,12 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { listPeople, RELATIONSHIP_CATEGORIES, type Person, type RelationshipCategory } from "./api";
+import { relationshipCategoryFilterItems } from "@/components/optionItems";
+import { SearchPicker } from "@/components/SearchPicker";
+import { listPeople, type Person, type RelationshipCategory } from "./api";
 import { Illustration } from "@/components/Illustration";
-
-const FILTERS: Array<{ value: RelationshipCategory | ""; label: string }> = [
-  { value: "", label: "All" },
-  ...RELATIONSHIP_CATEGORIES,
-];
 
 const CATEGORY_LABEL: Record<string, string> = {
   family: "Family",
@@ -53,13 +50,16 @@ export default function PeopleListRoute() {
           onChange={(e) => setQ(e.target.value)}
           style={{ flex: 1, minWidth: 200 }}
         />
-        <select
-          value={category}
-          onChange={(e) => setCategory(e.target.value as RelationshipCategory | "")}
-          style={{ width: "auto", flexShrink: 0 }}
-        >
-          {FILTERS.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
-        </select>
+        <div className="search-picker--inline">
+          <SearchPicker
+            items={relationshipCategoryFilterItems()}
+            value={category}
+            onChange={(id) => setCategory(id as RelationshipCategory | "")}
+            lockWhenSelected={false}
+            placeholder="Filter category…"
+            listAriaLabel="Relationship categories"
+          />
+        </div>
       </div>
 
       {error && <p className="muted" style={{ color: "var(--color-warning)" }}>{error}</p>}

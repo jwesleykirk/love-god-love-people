@@ -48,9 +48,13 @@ class ProposedPersonViewSet(viewsets.ReadOnlyModelViewSet):
         # Optional override: user can edit name/category at creation time
         full_name = (request.data.get("full_name") or prop.full_name).strip()
         preferred_name = (request.data.get("preferred_name") or prop.preferred_name).strip()
-        relationship_category = (
-            request.data.get("relationship_category") or RelationshipCategory.OTHER
-        )
+        relationship_category = (request.data.get("relationship_category") or "").strip()
+        valid_categories = {c.value for c in RelationshipCategory}
+        if relationship_category not in valid_categories:
+            return Response(
+                {"relationship_category": "A relationship category is required."},
+                status=drf_status.HTTP_400_BAD_REQUEST,
+            )
 
         person = Person.objects.create(
             owner=prop.owner,

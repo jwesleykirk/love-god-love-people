@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { listPeople, type Person } from "../people/api";
 import { listOrgs, type Organization } from "../orgs/api";
+import { OrgMultiPicker } from "@/components/OrgPicker";
+import { PersonMultiPicker } from "@/components/PersonPicker";
 import { createEntry } from "./api";
 
 export default function EntryNewRoute() {
@@ -29,13 +31,6 @@ export default function EntryNewRoute() {
     })();
     return () => { cancelled = true; };
   }, []);
-
-  function toggle(set: Set<number>, setter: (s: Set<number>) => void, id: number) {
-    const next = new Set(set);
-    if (next.has(id)) next.delete(id);
-    else next.add(id);
-    setter(next);
-  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -82,51 +77,27 @@ export default function EntryNewRoute() {
         </div>
 
         <div className="stack-lg">
-          <div>
-            <label>Tag people</label>
-            {people.length === 0 ? (
-              <p className="muted">Add some people first.</p>
-            ) : (
-              <div className="row row--wrap" style={{ gap: "var(--space-2)" }}>
-                {people.map((p) => {
-                  const on = selectedP.has(p.id);
-                  return (
-                    <button
-                      type="button"
-                      key={p.id}
-                      className={on ? "pill-btn pill-btn--selected" : "pill-btn"}
-                      onClick={() => toggle(selectedP, setSelectedP, p.id)}
-                    >
-                      {p.preferred_name || p.full_name}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
+          {people.length === 0 ? (
+            <p className="muted">Add some people first.</p>
+          ) : (
+            <PersonMultiPicker
+              label="Tag people"
+              people={people}
+              value={selectedP}
+              onChange={setSelectedP}
+            />
+          )}
 
-          <div>
-            <label>Tag organizations (optional)</label>
-            {orgs.length === 0 ? (
-              <p className="muted">No organizations yet.</p>
-            ) : (
-              <div className="row row--wrap" style={{ gap: "var(--space-2)" }}>
-                {orgs.map((o) => {
-                  const on = selectedO.has(o.id);
-                  return (
-                    <button
-                      type="button"
-                      key={o.id}
-                      className={on ? "pill-btn pill-btn--selected" : "pill-btn"}
-                      onClick={() => toggle(selectedO, setSelectedO, o.id)}
-                    >
-                      {o.name}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
+          {orgs.length === 0 ? (
+            <p className="muted">No organizations yet.</p>
+          ) : (
+            <OrgMultiPicker
+              label="Tag organizations (optional)"
+              orgs={orgs}
+              value={selectedO}
+              onChange={setSelectedO}
+            />
+          )}
 
           {error && <p className="muted" style={{ color: "var(--color-warning)" }}>{error}</p>}
 

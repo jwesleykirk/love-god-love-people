@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { createOrg, listOrgs, ORG_TYPES, type Organization, type OrgType } from "./api";
+import { OrgPicker, orgTypePickerItems } from "@/components/OrgPicker";
+import { SearchPicker } from "@/components/SearchPicker";
+import { createOrg, listOrgs, type Organization, type OrgType } from "./api";
 
 export default function OrgNewRoute() {
   const navigate = useNavigate();
@@ -44,17 +46,23 @@ export default function OrgNewRoute() {
       <h1>Add organization</h1>
       <form onSubmit={submit} className="card stack">
         <div><label>Name</label><input value={name} onChange={(e) => setName(e.target.value)} autoFocus /></div>
-        <div><label>Type</label>
-          <select value={orgType} onChange={(e) => setOrgType(e.target.value as OrgType)}>
-            {ORG_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-          </select>
-        </div>
-        <div><label>Parent organization (optional)</label>
-          <select value={parent} onChange={(e) => setParent(e.target.value ? Number(e.target.value) : "")}>
-            <option value="">— none —</option>
-            {parents.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-          </select>
-        </div>
+        <SearchPicker
+          label="Type"
+          items={orgTypePickerItems()}
+          value={orgType}
+          onChange={(id) => setOrgType(id as OrgType)}
+          lockWhenSelected={false}
+          placeholder="Search types…"
+          listAriaLabel="Organization types"
+        />
+        <OrgPicker
+          label="Parent organization (optional)"
+          orgs={parents}
+          value={parent}
+          onChange={setParent}
+          allowEmpty
+          emptyOptionLabel="— none —"
+        />
         <div><label>Notes</label><textarea value={notes} onChange={(e) => setNotes(e.target.value)} /></div>
         {error && <p style={{ color: "var(--color-warning)" }}>{error}</p>}
         <button type="submit" disabled={busy || !name.trim()}>{busy ? "Saving…" : "Save"}</button>
