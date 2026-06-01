@@ -38,11 +38,11 @@ export const LIFE_STAGES: Array<{ value: LifeStage; label: string }> = [
   { value: "", label: "—" },
   { value: "infant", label: "Infant (0–1)" },
   { value: "toddler", label: "Toddler (1–3)" },
-  { value: "child", label: "Child (4–12)" },
-  { value: "teen", label: "Teen (13–17)" },
-  { value: "young_adult", label: "Young adult (18–29)" },
-  { value: "adult", label: "Adult (30–64)" },
-  { value: "senior", label: "Senior (65+)" },
+  { value: "child", label: "Child" },
+  { value: "teen", label: "Teen" },
+  { value: "young_adult", label: "Young adult" },
+  { value: "adult", label: "Adult" },
+  { value: "senior", label: "Senior" },
 ];
 
 export function listPeople(params: { q?: string; category?: string } = {}) {

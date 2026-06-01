@@ -23,11 +23,11 @@ class RelationshipCategory(models.TextChoices):
 class LifeStage(models.TextChoices):
     INFANT = "infant", "Infant (0–1)"
     TODDLER = "toddler", "Toddler (1–3)"
-    CHILD = "child", "Child (4–12)"
-    TEEN = "teen", "Teen (13–17)"
-    YOUNG_ADULT = "young_adult", "Young adult (18–29)"
-    ADULT = "adult", "Adult (30–64)"
-    SENIOR = "senior", "Senior (65+)"
+    CHILD = "child", "Child"
+    TEEN = "teen", "Teen"
+    YOUNG_ADULT = "young_adult", "Young adult"
+    ADULT = "adult", "Adult"
+    SENIOR = "senior", "Senior"
 
 
 class Person(models.Model):

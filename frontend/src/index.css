@@ -48,36 +48,6 @@ a:hover { text-decoration: underline; }
   .container { padding: var(--space-8) var(--space-6); }
 }
 
-header.app {
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
-  padding: var(--space-3) var(--space-4);
-  background: var(--color-card);
-  border-bottom: 1px solid var(--color-border);
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
-header.app .brand {
-  font-family: var(--font-serif);
-  font-weight: 600;
-  font-size: 1.125rem;
-  color: var(--color-text);
-}
-header.app nav {
-  display: flex;
-  gap: var(--space-4);
-  margin-left: auto;
-  font-size: var(--text-label);
-  align-items: center;
-}
-header.app nav a {
-  color: var(--color-text-muted);
-  font-weight: 500;
-}
-header.app nav a:hover { color: var(--color-text); text-decoration: none; }
-
 /* ──────── Inputs ──────── */
 
 input, textarea, select, button {
@@ -287,60 +257,46 @@ ul.bare > li:last-child { border-bottom: none; }
 .status-dot--warning { background: var(--color-warning); }
 .status-dot--primary { background: var(--color-primary); }
 
-/* ──────── Mobile nav ──────── */
+/* ──────── Bottom nav ──────── */
+
+main.container {
+  padding-bottom: 80px;
+}
+
+nav.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  background: var(--color-card);
+  border-top: 1px solid var(--color-border);
+  padding: var(--space-2) 0;
+  padding-bottom: calc(var(--space-2) + env(safe-area-inset-bottom));
+  z-index: 20;
+}
+nav.bottom-nav a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  font-size: var(--text-caption);
+  color: var(--color-text-muted);
+  text-decoration: none;
+  padding: var(--space-1) var(--space-2);
+  min-width: 56px;
+}
+nav.bottom-nav a.active { color: var(--color-text); }
+nav.bottom-nav a:hover { text-decoration: none; }
+nav.bottom-nav .bn-icon { font-size: 1.25rem; }
 
 @media (max-width: 640px) {
-  header.app {
-    padding: var(--space-3) var(--space-4);
-  }
-  header.app .brand {
-    font-size: 1rem;
-  }
-  /* Hide top-nav links on small screens — moved to bottom-nav */
-  header.app nav { display: none; }
-
-  /* Make room above the bottom-nav so content isn't covered */
-  main.container { padding-bottom: 80px; }
-
-  /* Bottom nav */
-  nav.bottom-nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    background: var(--color-card);
-    border-top: 1px solid var(--color-border);
-    padding: var(--space-2) 0;
-    padding-bottom: calc(var(--space-2) + env(safe-area-inset-bottom));
-    z-index: 20;
-  }
-  nav.bottom-nav a {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2px;
-    font-size: var(--text-caption);
-    color: var(--color-text-muted);
-    text-decoration: none;
-    padding: var(--space-1) var(--space-2);
-    min-width: 56px;
-  }
-  nav.bottom-nav a.active { color: var(--color-text); }
-  nav.bottom-nav a:hover { text-decoration: none; }
-  nav.bottom-nav .bn-icon { font-size: 1.25rem; }
-
-  /* On phones, drop heroes a notch */
   h1 { font-size: 1.875rem; }
   h2 { font-size: 1.5rem; }
   h3 { font-size: 1.25rem; }
   .hero-title { font-size: 1.875rem; }
-}
-
-@media (min-width: 641px) {
-  nav.bottom-nav { display: none; }
 }
 
 /* ──────── Search picker (search + tap list) ──────── */
