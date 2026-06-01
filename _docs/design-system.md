@@ -202,13 +202,15 @@ Every placeholder location is tagged in source with `{/* ILLUSTRATION_PLACEHOLDE
 
 ## Page mockups
 
+### Chrome
+
+The app has **no top header bar** at any breakpoint. Navigation lives entirely in the **`BottomNav`** — a fixed bar at the bottom of the viewport with Home / People / Entry / Review / Orgs icons. The bottom-nav is visible at every breakpoint (mobile + desktop). `main.container` reserves 80px of bottom padding so content clears the nav.
+
+No visible brand marks are rendered in the UI chrome by design. The brand surfaces only in the `<title>`, the PWA manifest, the apple-touch-icon, and the sign-in page.
+
 ### Home (`/`)
 
 ```
-═══════════════════════════════════════════
-  LGLP                  People  Orgs  + Entry  Review
-═══════════════════════════════════════════
-
   Good morning, Wesley
   ────────────────────                  ← --text-h1, serif
 
