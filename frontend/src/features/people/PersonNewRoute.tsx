@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { createPerson, LIFE_STAGES, RELATIONSHIP_CATEGORIES, type LifeStage, type RelationshipCategory } from "./api";
+import { lifeStageItems, relationshipCategoryItems } from "@/components/optionItems";
+import { SearchPicker } from "@/components/SearchPicker";
+import { createPerson, type LifeStage, type RelationshipCategory } from "./api";
 
 export default function PersonNewRoute() {
   const navigate = useNavigate();
@@ -39,16 +41,24 @@ export default function PersonNewRoute() {
       <form onSubmit={submit} className="card stack">
         <div><label>Full name</label><input value={fullName} onChange={(e) => setFullName(e.target.value)} autoFocus /></div>
         <div><label>Preferred name (optional)</label><input value={preferredName} onChange={(e) => setPreferredName(e.target.value)} /></div>
-        <div><label>Relationship</label>
-          <select value={category} onChange={(e) => setCategory(e.target.value as RelationshipCategory)}>
-            {RELATIONSHIP_CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
-          </select>
-        </div>
-        <div><label>Life stage (optional)</label>
-          <select value={lifeStage} onChange={(e) => setLifeStage(e.target.value as LifeStage)}>
-            {LIFE_STAGES.map((s) => <option key={s.value || "none"} value={s.value}>{s.label}</option>)}
-          </select>
-        </div>
+        <SearchPicker
+          label="Relationship"
+          items={relationshipCategoryItems()}
+          value={category}
+          onChange={(id) => setCategory(id as RelationshipCategory)}
+          lockWhenSelected={false}
+          placeholder="Search categories…"
+          listAriaLabel="Relationship categories"
+        />
+        <SearchPicker
+          label="Life stage (optional)"
+          items={lifeStageItems()}
+          value={lifeStage}
+          onChange={(id) => setLifeStage(id as LifeStage)}
+          lockWhenSelected={false}
+          placeholder="Search life stages…"
+          listAriaLabel="Life stages"
+        />
         <div><label>Birthday (optional)</label><input type="date" value={birthday} onChange={(e) => setBirthday(e.target.value)} /></div>
         <div><label>Notes</label><textarea value={notes} onChange={(e) => setNotes(e.target.value)} /></div>
         {error && <p style={{ color: "var(--color-warning)" }}>{error}</p>}

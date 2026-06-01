@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { associationTypeItems } from "@/components/optionItems";
+import { PersonMultiPicker } from "@/components/PersonPicker";
+import { SearchPicker } from "@/components/SearchPicker";
 import { listPeople, type Person } from "../people/api";
 import {
   createAssociation,
@@ -17,7 +20,7 @@ export function AssociationsPanel({ personId }: Props) {
   const [types, setTypes] = useState<AssociationType[]>([]);
   const [people, setPeople] = useState<Person[]>([]);
   const [showAdd, setShowAdd] = useState(false);
-  const [draftPerson, setDraftPerson] = useState<number | "">("");
+  const [draftPeople, setDraftPeople] = useState<Set<number>>(new Set());
   const [draftType, setDraftType] = useState<number | "">("");
   const [busy, setBusy] = useState(false);
 
@@ -34,16 +37,18 @@ export function AssociationsPanel({ personId }: Props) {
   useEffect(() => { void load(); }, [personId]);
 
   async function add() {
-    if (!draftPerson || !draftType) return;
+    if (draftPeople.size === 0 || !draftType) return;
     setBusy(true);
     try {
-      await createAssociation({
-        from_person: personId,
-        to_person: draftPerson as number,
-        association_type: draftType as number,
-      });
+      for (const toPersonId of draftPeople) {
+        await createAssociation({
+          from_person: personId,
+          to_person: toPersonId,
+          association_type: draftType as number,
+        });
+      }
       setShowAdd(false);
-      setDraftPerson("");
+      setDraftPeople(new Set());
       setDraftType("");
       await load();
     } finally {
@@ -61,10 +66,8 @@ export function AssociationsPanel({ personId }: Props) {
     }
   }
 
-  const byCategory = types.reduce<Record<string, AssociationType[]>>((acc, t) => {
-    (acc[t.category] ??= []).push(t);
-    return acc;
-  }, {});
+  const typeItems = associationTypeItems(types);
+  const associatedPersonIds = associations.map((a) => a.to_person);
 
   if (associations.length === 0 && !showAdd) {
     return (
@@ -79,27 +82,29 @@ export function AssociationsPanel({ personId }: Props) {
     <>
       {showAdd && (
         <div className="card stack">
-          <div>
-            <label>Type</label>
-            <select value={draftType} onChange={(e) => setDraftType(e.target.value ? Number(e.target.value) : "")}>
-              <option value="">— pick one —</option>
-              {Object.entries(byCategory).map(([cat, list]) => (
-                <optgroup key={cat} label={cat}>
-                  {list.map((t) => <option key={t.id} value={t.id}>{t.name.replace(/_/g, " ")}</option>)}
-                </optgroup>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label>To person</label>
-            <select value={draftPerson} onChange={(e) => setDraftPerson(e.target.value ? Number(e.target.value) : "")}>
-              <option value="">— pick one —</option>
-              {people.map((p) => <option key={p.id} value={p.id}>{p.full_name}</option>)}
-            </select>
-          </div>
+          <SearchPicker
+            label="Association type"
+            items={typeItems}
+            value={draftType}
+            onChange={(id) => setDraftType(id === "" ? "" : Number(id))}
+            allowEmpty
+            emptyOptionLabel="— choose type —"
+            placeholder="Search association types…"
+            listAriaLabel="Association types"
+          />
+          <PersonMultiPicker
+            label="People"
+            people={people}
+            value={draftPeople}
+            onChange={setDraftPeople}
+            excludeIds={associatedPersonIds}
+            emptyMessage="No one left to associate — everyone is already linked."
+          />
           <div className="row" style={{ gap: "var(--space-2)" }}>
-            <button onClick={add} disabled={busy || !draftPerson || !draftType}>Save</button>
-            <button className="secondary" onClick={() => { setShowAdd(false); setDraftPerson(""); setDraftType(""); }}>Cancel</button>
+            <button onClick={add} disabled={busy || draftPeople.size === 0 || !draftType}>
+              {draftPeople.size <= 1 ? "Save" : `Save (${draftPeople.size})`}
+            </button>
+            <button className="secondary" onClick={() => { setShowAdd(false); setDraftPeople(new Set()); setDraftType(""); }}>Cancel</button>
           </div>
         </div>
       )}

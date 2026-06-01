@@ -2,9 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
   getPerson,
-  LIFE_STAGES,
   listPersonProperties,
-  RELATIONSHIP_CATEGORIES,
   updatePerson,
   type LifeStage,
   type Person,
@@ -14,7 +12,9 @@ import {
 import { listEntries, type JournalEntry } from "../entries/api";
 import { listMemberships, type Membership } from "../orgs/api";
 import { AssociationsPanel } from "../associations/AssociationsPanel";
+import { lifeStageItems, relationshipCategoryItems } from "@/components/optionItems";
 import { Illustration } from "@/components/Illustration";
+import { SearchPicker } from "@/components/SearchPicker";
 
 type Tab = "profile" | "properties" | "associations" | "memberships" | "journal";
 
@@ -199,16 +199,24 @@ export default function PersonDetailRoute() {
         <div className="card stack">
           <div><label>Full name</label><input value={draftFullName} onChange={(e) => setDraftFullName(e.target.value)} /></div>
           <div><label>Preferred name</label><input value={draftPreferred} onChange={(e) => setDraftPreferred(e.target.value)} /></div>
-          <div><label>Relationship</label>
-            <select value={draftCategory} onChange={(e) => setDraftCategory(e.target.value as RelationshipCategory)}>
-              {RELATIONSHIP_CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
-            </select>
-          </div>
-          <div><label>Life stage</label>
-            <select value={draftLifeStage} onChange={(e) => setDraftLifeStage(e.target.value as LifeStage)}>
-              {LIFE_STAGES.map((s) => <option key={s.value || "none"} value={s.value}>{s.label}</option>)}
-            </select>
-          </div>
+          <SearchPicker
+            label="Relationship"
+            items={relationshipCategoryItems()}
+            value={draftCategory}
+            onChange={(id) => setDraftCategory(id as RelationshipCategory)}
+            lockWhenSelected={false}
+            placeholder="Search categories…"
+            listAriaLabel="Relationship categories"
+          />
+          <SearchPicker
+            label="Life stage"
+            items={lifeStageItems()}
+            value={draftLifeStage}
+            onChange={(id) => setDraftLifeStage(id as LifeStage)}
+            lockWhenSelected={false}
+            placeholder="Search life stages…"
+            listAriaLabel="Life stages"
+          />
           <div><label>Birthday</label><input type="date" value={draftBirthday} onChange={(e) => setDraftBirthday(e.target.value)} /></div>
           <div><label>Deceased</label><input type="date" value={draftDeceased} onChange={(e) => setDraftDeceased(e.target.value)} /></div>
           <div><label>Notes</label><textarea value={draftNotes} onChange={(e) => setDraftNotes(e.target.value)} /></div>

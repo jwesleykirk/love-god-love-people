@@ -18,7 +18,9 @@ import {
   type ProposedPerson,
   type PropertyDef,
 } from "./api";
-import { RELATIONSHIP_CATEGORIES, type RelationshipCategory } from "../people/api";
+import { propertyDefItems, relationshipCategoryCreateItems } from "@/components/optionItems";
+import { SearchPicker } from "@/components/SearchPicker";
+import type { RelationshipCategory } from "../people/api";
 
 type Tab = "values" | "definitions" | "persons";
 
@@ -263,11 +265,14 @@ function PropertyDefRow({ pd, busy, activeDefs, onKeep, onArchive, onRename, onM
       )}
       {mode === "merge" && (
         <div className="stack">
-          <label>Merge into:</label>
-          <select value={mergeTarget} onChange={(e) => setMergeTarget(e.target.value ? Number(e.target.value) : "")}>
-            <option value="">— pick —</option>
-            {activeDefs.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
-          </select>
+          <SearchPicker
+            label="Merge into"
+            items={propertyDefItems(activeDefs.filter((d) => d.id !== pd.id))}
+            value={mergeTarget}
+            onChange={(id) => setMergeTarget(id === "" ? "" : Number(id))}
+            placeholder="Search properties…"
+            listAriaLabel="Property definitions"
+          />
           <div className="row" style={{ gap: "var(--space-2)" }}>
             <button disabled={busy || !mergeTarget} onClick={() => mergeTarget && onMerge(mergeTarget)}>Merge</button>
             <button className="secondary" onClick={() => { setMode("default"); setMergeTarget(""); }}>Cancel</button>
@@ -323,7 +328,9 @@ function ProposedPersonsPane() {
           key={p.id}
           proposal={p}
           busy={busyId === p.id}
-          onCreate={(category) => act(p.id, () => createProposedPerson(p.id, { relationship_category: category }))}
+          onCreate={(category) =>
+            act(p.id, () => createProposedPerson(p.id, { relationship_category: category as RelationshipCategory }))
+          }
           onReject={() => act(p.id, () => rejectProposedPerson(p.id))}
         />
       ))}
@@ -334,10 +341,10 @@ function ProposedPersonsPane() {
 function ProposedPersonRow({ proposal, busy, onCreate, onReject }: {
   proposal: ProposedPerson;
   busy: boolean;
-  onCreate: (category: RelationshipCategory) => void;
+  onCreate: (category: RelationshipCategory | "") => void;
   onReject: () => void;
 }) {
-  const [category, setCategory] = useState<RelationshipCategory>("other");
+  const [category, setCategory] = useState<RelationshipCategory | "">("");
   const payload = proposal.proposal_payload || {};
   const associations = payload.associations || [];
   const properties = payload.properties || [];
@@ -379,13 +386,20 @@ function ProposedPersonRow({ proposal, busy, onCreate, onReject }: {
 
       <div className="divider" />
 
-      <div className="row row--wrap" style={{ gap: "var(--space-2)", alignItems: "center" }}>
-        <label style={{ margin: 0, fontSize: "var(--text-label)" }}>As:</label>
-        <select value={category} onChange={(e) => setCategory(e.target.value as RelationshipCategory)} style={{ width: "auto", flexShrink: 0 }}>
-          {RELATIONSHIP_CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
-        </select>
-        <button className="primary-pill" disabled={busy} onClick={() => onCreate(category)} style={{ padding: "var(--space-2) var(--space-4)", fontSize: "var(--text-label)" }}>Create</button>
-        <button className="danger" disabled={busy} onClick={onReject} style={{ padding: "var(--space-2) var(--space-4)", fontSize: "var(--text-label)" }}>Reject</button>
+      <div className="stack" style={{ gap: "var(--space-3)" }}>
+        <SearchPicker
+          label="Create as"
+          items={relationshipCategoryCreateItems()}
+          value={category}
+          onChange={(id) => setCategory(id as RelationshipCategory | "")}
+          lockWhenSelected={false}
+          placeholder="Search categories…"
+          listAriaLabel="Relationship categories"
+        />
+        <div className="row row--wrap" style={{ gap: "var(--space-2)" }}>
+          <button className="primary-pill" disabled={busy || !category} onClick={() => onCreate(category)} style={{ padding: "var(--space-2) var(--space-4)", fontSize: "var(--text-label)" }}>Create</button>
+          <button className="danger" disabled={busy} onClick={onReject} style={{ padding: "var(--space-2) var(--space-4)", fontSize: "var(--text-label)" }}>Reject</button>
+        </div>
       </div>
     </div>
   );

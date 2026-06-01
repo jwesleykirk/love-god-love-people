@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { createMembership, deleteMembership, getOrg, listMemberships, listOrgs, ORG_TYPES, updateOrg, type Membership, type Organization, type OrgType } from "./api";
+import { createMembership, deleteMembership, getOrg, listMemberships, listOrgs, updateOrg, type Membership, type Organization, type OrgType } from "./api";
 import { listPeople, type Person } from "../people/api";
 import { Illustration } from "@/components/Illustration";
+import { OrgPicker, orgTypePickerItems } from "@/components/OrgPicker";
+import { PersonMultiPicker } from "@/components/PersonPicker";
+import { SearchPicker } from "@/components/SearchPicker";
 
 const ORG_TYPE_LABEL: Record<string, string> = {
   church: "Church",
@@ -27,8 +30,9 @@ export default function OrgDetailRoute() {
   const [draftType, setDraftType] = useState<OrgType>("other");
   const [draftNotes, setDraftNotes] = useState("");
   const [showAddMember, setShowAddMember] = useState(false);
-  const [memberPersonId, setMemberPersonId] = useState<number | "">("");
+  const [memberPersonIds, setMemberPersonIds] = useState<Set<number>>(new Set());
   const [memberRole, setMemberRole] = useState("");
+  const [addingMembers, setAddingMembers] = useState(false);
 
   async function load() {
     try {
@@ -62,18 +66,24 @@ export default function OrgDetailRoute() {
     await load();
   }
 
-  async function addMember() {
-    if (!memberPersonId) return;
-    await createMembership({
-      person: memberPersonId as number,
-      organization: orgId,
-      role: memberRole.trim() || undefined,
-    });
-    setShowAddMember(false);
-    setMemberPersonId("");
-    setMemberRole("");
-    await load();
+  async function addMembers() {
+    if (memberPersonIds.size === 0) return;
+    setAddingMembers(true);
+    try {
+      const role = memberRole.trim() || undefined;
+      for (const personId of memberPersonIds) {
+        await createMembership({ person: personId, organization: orgId, role });
+      }
+      setShowAddMember(false);
+      setMemberPersonIds(new Set());
+      setMemberRole("");
+      await load();
+    } finally {
+      setAddingMembers(false);
+    }
   }
+
+  const memberIds = memberships.map((m) => m.person);
 
   async function removeMember(id: number) {
     await deleteMembership(id);
@@ -104,11 +114,15 @@ export default function OrgDetailRoute() {
       {editing && (
         <div className="card stack">
           <div><label>Name</label><input value={draftName} onChange={(e) => setDraftName(e.target.value)} /></div>
-          <div><label>Type</label>
-            <select value={draftType} onChange={(e) => setDraftType(e.target.value as OrgType)}>
-              {ORG_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-            </select>
-          </div>
+          <SearchPicker
+            label="Type"
+            items={orgTypePickerItems()}
+            value={draftType}
+            onChange={(id) => setDraftType(id as OrgType)}
+            lockWhenSelected={false}
+            placeholder="Search types…"
+            listAriaLabel="Organization types"
+          />
           <div><label>Notes</label><textarea value={draftNotes} onChange={(e) => setDraftNotes(e.target.value)} /></div>
           <div className="row" style={{ gap: "var(--space-2)" }}>
             <button onClick={saveEdit}>Save</button>
@@ -136,18 +150,29 @@ export default function OrgDetailRoute() {
         </div>
         {showAddMember && (
           <div className="stack" style={{ marginBottom: "var(--space-4)", padding: "var(--space-3)", background: "var(--color-bg)", borderRadius: "var(--radius-md)" }}>
-            <div>
-              <label>Person</label>
-              <select value={memberPersonId} onChange={(e) => setMemberPersonId(e.target.value ? Number(e.target.value) : "")}>
-                <option value="">— pick one —</option>
-                {people.map((p) => <option key={p.id} value={p.id}>{p.full_name}</option>)}
-              </select>
-            </div>
+            <PersonMultiPicker
+              label="People"
+              people={people}
+              value={memberPersonIds}
+              onChange={setMemberPersonIds}
+              excludeIds={memberIds}
+              emptyMessage="Everyone you know is already a member of this organization."
+            />
             <div>
               <label>Role (optional)</label>
-              <input value={memberRole} onChange={(e) => setMemberRole(e.target.value)} placeholder="e.g. elder, member, student" />
+              <input
+                value={memberRole}
+                onChange={(e) => setMemberRole(e.target.value)}
+                placeholder="e.g. elder, member, student — applies to all selected"
+              />
             </div>
-            <button onClick={addMember} disabled={!memberPersonId}>Add</button>
+            <button onClick={addMembers} disabled={addingMembers || memberPersonIds.size === 0}>
+              {addingMembers
+                ? "Adding…"
+                : memberPersonIds.size === 1
+                  ? "Add member"
+                  : `Add ${memberPersonIds.size} members`}
+            </button>
           </div>
         )}
         {memberships.length === 0 ? (
