@@ -8,6 +8,7 @@ back to the same type.
 """
 from django.conf import settings
 from django.db import models
+from simple_history.models import HistoricalRecords
 
 
 class AssociationCategory(models.TextChoices):
@@ -72,6 +73,8 @@ class PersonAssociation(models.Model):
     # Used to find the paired row in the reverse direction so we can update
     # / delete both rows atomically when the user edits one side.
     paired_id = models.IntegerField(null=True, blank=True)
+
+    history = HistoricalRecords()
 
     class Meta:
         ordering = ["-created_at"]

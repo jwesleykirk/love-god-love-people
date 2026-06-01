@@ -10,6 +10,7 @@ Kirk family" as a unit without iterating every member.
 """
 from django.conf import settings
 from django.db import models
+from simple_history.models import HistoricalRecords
 
 
 class OrgType(models.TextChoices):
@@ -80,6 +81,8 @@ class OrganizationMembership(models.Model):
     notes = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    history = HistoricalRecords()
 
     class Meta:
         ordering = ["-started_at"]

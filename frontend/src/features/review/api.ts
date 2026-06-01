@@ -100,3 +100,63 @@ export function mergePropertyDef(id: number, target_id: number) {
     body: { target_id },
   });
 }
+
+// ----- Proposed Persons (v0.3) -----
+
+export type ProposedPerson = {
+  id: number;
+  full_name: string;
+  preferred_name: string;
+  life_stage: string;
+  ai_confidence: number;
+  proposal_payload: {
+    associations?: Array<{ to_person_id: number; association_type: string }>;
+    properties?: Array<{ property_name: string; value: string; data_type: string; confidence: number }>;
+  };
+  prompt_version: string;
+  model: string;
+  status: "pending_review" | "created" | "rejected";
+  resolved_to_person: number | null;
+  source_entry: number;
+  source_entry_text: string;
+  source_entry_created_at: string;
+  created_at: string;
+  reviewed_at: string | null;
+};
+
+export type ProposedPersonList = {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: ProposedPerson[];
+};
+
+export function listProposedPersons() {
+  return apiFetch<ProposedPersonList>("/api/proposed-persons/?status=pending_review");
+}
+
+export function createProposedPerson(id: number, overrides: { full_name?: string; preferred_name?: string; relationship_category?: string }) {
+  return apiFetch<ProposedPerson>(`/api/proposed-persons/${id}/create-person/`, {
+    method: "POST",
+    body: overrides,
+  });
+}
+
+export function rejectProposedPerson(id: number) {
+  return apiFetch<ProposedPerson>(`/api/proposed-persons/${id}/reject/`, { method: "POST" });
+}
+
+// ----- PersonProperty history (v0.3) -----
+
+export type PersonPropertyHistoryEntry = {
+  id: number;
+  date: string;
+  type: "+" | "~" | "-";  // create / update / delete
+  change_reason: string;
+  value_text: string;
+  status: string;
+};
+
+export function getPersonPropertyHistory(id: number) {
+  return apiFetch<{ history: PersonPropertyHistoryEntry[] }>(`/api/properties/${id}/history/`);
+}

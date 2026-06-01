@@ -9,6 +9,7 @@ merges/archives it via the Review Console.
 """
 from django.conf import settings
 from django.db import models
+from simple_history.models import HistoricalRecords
 
 
 class DataTypeHint(models.TextChoices):
@@ -63,6 +64,8 @@ class PropertyDef(models.Model):
     usage_count = models.IntegerField(default=0)
     reviewed_at = models.DateTimeField(null=True, blank=True)
 
+    history = HistoricalRecords()
+
     class Meta:
         ordering = ["name"]
         constraints = [
@@ -84,6 +87,7 @@ class PersonPropertyStatus(models.TextChoices):
     APPROVED = "approved", "Approved"
     REJECTED = "rejected", "Rejected"
     EDITED = "edited", "Edited"
+    SUPERSEDED = "superseded", "Superseded"
 
 
 class PersonProperty(models.Model):
@@ -120,6 +124,8 @@ class PersonProperty(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     reviewed_at = models.DateTimeField(null=True, blank=True)
+
+    history = HistoricalRecords()
 
     class Meta:
         ordering = ["-created_at"]

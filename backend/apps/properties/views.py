@@ -77,11 +77,30 @@ class PersonPropertyViewSet(viewsets.ModelViewSet):
             qs = qs.filter(person_id=person_id)
         return qs
 
+    @action(detail=True, methods=["get"])
+    def history(self, request, pk=None):
+        """Return historical record list for this PersonProperty."""
+        pp = self.get_object()
+        rows = pp.history.all().order_by("-history_date")
+        payload = [
+            {
+                "id": h.history_id,
+                "date": h.history_date.isoformat(),
+                "type": h.history_type,  # +, ~, -
+                "change_reason": h.history_change_reason or "",
+                "value_text": h.value_text,
+                "status": h.status,
+            }
+            for h in rows
+        ]
+        return Response({"history": payload})
+
     @action(detail=True, methods=["post"])
     def approve(self, request, pk=None):
         pp = self.get_object()
         pp.status = PersonPropertyStatus.APPROVED
         pp.reviewed_at = timezone.now()
+        pp._change_reason = f"ui:user_id={request.user.pk}:approve"
         pp.save(update_fields=["status", "reviewed_at"])
         return Response(PersonPropertySerializer(pp).data)
 
@@ -90,6 +109,7 @@ class PersonPropertyViewSet(viewsets.ModelViewSet):
         pp = self.get_object()
         pp.status = PersonPropertyStatus.REJECTED
         pp.reviewed_at = timezone.now()
+        pp._change_reason = f"ui:user_id={request.user.pk}:reject"
         pp.save(update_fields=["status", "reviewed_at"])
         return Response(PersonPropertySerializer(pp).data)
 
@@ -102,5 +122,6 @@ class PersonPropertyViewSet(viewsets.ModelViewSet):
         pp.value_text = new_value.strip()
         pp.status = PersonPropertyStatus.EDITED
         pp.reviewed_at = timezone.now()
+        pp._change_reason = f"ui:user_id={request.user.pk}:edit"
         pp.save(update_fields=["value_text", "status", "reviewed_at"])
         return Response(PersonPropertySerializer(pp).data)

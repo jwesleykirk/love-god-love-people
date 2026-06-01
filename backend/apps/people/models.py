@@ -8,6 +8,7 @@ v0.2 changes:
 """
 from django.conf import settings
 from django.db import models
+from simple_history.models import HistoricalRecords
 
 
 class RelationshipCategory(models.TextChoices):
@@ -54,6 +55,8 @@ class Person(models.Model):
     archived = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    history = HistoricalRecords()
 
     class Meta:
         ordering = ["full_name"]

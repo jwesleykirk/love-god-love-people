@@ -27,4 +27,16 @@ class PersonViewSet(viewsets.ModelViewSet):
         return qs
 
     def perform_create(self, serializer):
-        serializer.save(owner=self.request.user)
+        person = serializer.save(owner=self.request.user)
+        person._change_reason = f"ui:user_id={self.request.user.pk}"
+        person.save(update_fields=[])
+
+    def perform_update(self, serializer):
+        person = serializer.save()
+        person._change_reason = f"ui:user_id={self.request.user.pk}"
+        person.save(update_fields=[])
+
+    def perform_destroy(self, instance):
+        instance._change_reason = f"ui:user_id={self.request.user.pk}:delete"
+        instance.save(update_fields=[])
+        instance.delete()

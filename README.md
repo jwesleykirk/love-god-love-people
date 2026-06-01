@@ -1,17 +1,21 @@
 # Love God, Love People
 
-A private personal CRM that helps me remember people — their lives, their kids, their needs — so I can ask better questions, pray more faithfully, and represent God's love through personal attention.
+A private personal CRM that helps me remember the people in my life — their families, their kids, their stories — so I can ask better questions, pray more faithfully, and represent God's love through personal attention.
 
-**The core unlock:** low-friction journaling backed by AI-driven schema discovery. Write a quick text entry; AI parses it into structured properties on the right Person record, including proposing brand-new property types as it discovers them. Review everything in a dedicated console. Single-user for v0.1; architecture supports multi-user from day one.
+The core unlock: low-friction journaling backed by AI-driven schema discovery. Write a quick text entry; AI parses it into structured properties on the right Person record — and proposes new property types it discovers along the way. Wesley reviews everything in a dedicated console. The schema for AI-discoverable facts grows organically; the foundational graph (people, organizations, typed associations) is pre-loaded.
 
-Built as a Django + DRF + React + Postgres web app on Railway, with a path to a native Swift iOS app in Phase 5. Full product brief in [`BRIEF.md`](./BRIEF.md). Authoritative source lives in ChatPRD.
+Single-user for v0.1 (Wesley). Architecture supports multi-user from day one. Path to a private Swift iOS app in Phase 5.
+
+Full brief in [`BRIEF.md`](./BRIEF.md). Architecture explainer in [`_docs/architecture.md`](./_docs/architecture.md). Prompt design in [`_docs/prompt-design.md`](./_docs/prompt-design.md). Code conventions and hard rules in [`CLAUDE.md`](./CLAUDE.md).
 
 ## Stack
 
 - **Backend:** Django 5 + Django REST Framework, Postgres
-- **Frontend:** React + Vite + TypeScript, mobile-first
-- **Auth:** Google OAuth via `django-allauth`, allowlist-gated for v0.1
-- **AI extraction:** OpenRouter → Claude Sonnet, async via Django-Q2 (Postgres broker)
+- **Frontend:** React 18 + Vite + TypeScript, mobile-first
+- **Auth:** Google OAuth via `django-allauth`, email allowlist
+- **Background jobs:** Django-Q2 with Postgres broker (no Redis)
+- **AI:** OpenRouter → Claude Sonnet
+- **Audit history:** `django-simple-history` on PersonProperty, Person, PropertyDef, PersonAssociation, OrganizationMembership
 - **Deploy:** Railway (single service for API + SPA + worker)
 
 ## Local quickstart
@@ -33,10 +37,10 @@ npm install
 npm run dev
 ```
 
-- Vite dev server: <http://localhost:5173> (proxies `/api/*` to Django on 8000)
+- Vite dev server: <http://localhost:5173> (proxies `/api/*` and `/accounts/*` to Django on 8000)
 - Django dev server: <http://localhost:8000>
 
-Run the async extraction worker (only needed once `OPENROUTER_API_KEY` is set):
+To run the async extraction worker (only needed once `OPENROUTER_API_KEY` is set):
 
 ```bash
 cd backend && uv run python manage.py qcluster
@@ -44,25 +48,22 @@ cd backend && uv run python manage.py qcluster
 
 ## Feature flags
 
-Auth and AI extraction are off by default so the first Railway deploy boots without secrets:
+Both off by default so a fresh Railway deploy boots without any secrets configured:
 
-- **Auth** — `ENABLE_AUTH=False` runs the app as the fixture user `wesley@local` (auto-created on first request). `ENABLE_AUTH=True` requires Google OAuth and the user's email must appear in `GOOGLE_OAUTH_ALLOWED_EMAILS`.
-- **AI extraction** — controlled by the presence of `OPENROUTER_API_KEY`. When empty, the async task logs "extraction skipped: no API key" and the Review Console stays empty.
+- **`ENABLE_AUTH`** — when False, the app runs as the fixture user `wesley@local` (auto-created on first request). When True, Google OAuth + email allowlist are enforced.
+- **`OPENROUTER_API_KEY` presence** — when empty, the async extraction task no-ops and logs "extraction skipped: no API key". When set, AI extraction runs for every new entry.
 
-## Phase 1 v0.1 scope
+## Shipped scope
 
-- Person CRUD
-- JournalEntry CRUD with multi-person tagging
-- PropertyDef + PersonProperty (EAV property bag)
-- Async extraction pipeline (OpenRouter → Claude Sonnet)
-- Extraction Review Console — Pending Values surface
-- Google OAuth with allowlist
-- Railway deploy
+- **v0.1** — Person CRUD, JournalEntry with multi-person tagging, EAV property bag (PropertyDef + PersonProperty), async extraction pipeline (OpenRouter → Claude Sonnet), Review Console with Pending Values, Google OAuth, Railway deploy.
+- **v0.1.1** — Person edit form, entry processing-status indicator, New Property Definitions review surface.
+- **v0.2** — Foundational graph: Organizations (n-level parent hierarchy), OrganizationMembership (typed join with temporal validity), AssociationType (21 seeded types — spouse_of, parent_of, mentor_of, etc.), PersonAssociation (two-row storage), entries can tag orgs alongside people, Person.life_stage / birthday / deceased_at, extraction prompt v1.
+- **v0.3** — ProposedPerson workflow (AI proposes new Person records for un-tagged people), Review Console third tab "Proposed People", audit history via `django-simple-history`, extraction prompt v2 with uncertainty discipline + plural-pronoun expansion + standardized property names, `approximate_birth_year` PropertyDef with automatic supersession when `Person.birthday` is set.
 
-Deferred to v0.1.1: New Property Definitions review surface, PWA manifest, advanced search, pg_dump backup cron.
+## Planned
 
-## Don't
-
-- No DDL from AI — schema discovery happens via PropertyDef rows.
-- No committed secrets — everything via env vars.
-- No Redis — background jobs use Django-Q2 with Postgres broker.
+- **Phase 2** — Spaced repetition for properties
+- **Phase 3** — Prayer engine
+- **Phase 4** — Photos + face-name flashcards
+- **Phase 5** — Private Swift iOS app via TestFlight
+- **Phase 6** — App Store distribution

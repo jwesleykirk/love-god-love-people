@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     # Third-party
     "rest_framework",
     "corsheaders",
+    "simple_history",
     "django_q",
     "allauth",
     "allauth.account",
@@ -81,6 +82,7 @@ MIDDLEWARE = [
     # Auto-login as fixture user when ENABLE_AUTH is False. This must run AFTER
     # AuthenticationMiddleware so request.user is available to read/replace.
     "apps.accounts.middleware.FixtureUserMiddleware",
+    "simple_history.middleware.HistoryRequestMiddleware",
     "allauth.account.middleware.AccountMiddleware",
 ]
 

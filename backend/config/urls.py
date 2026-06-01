@@ -25,6 +25,7 @@ urlpatterns = [
     path("api/property-defs/", include("apps.properties.urls_defs")),
     path("api/properties/", include("apps.properties.urls_values")),
     path("api/review/", include("apps.review.urls")),
+    path("api/proposed-persons/", include("apps.extraction.urls")),
     path("api/auth/me/", accounts_me, name="auth-me"),
 
     # django-allauth login/logout/callback
