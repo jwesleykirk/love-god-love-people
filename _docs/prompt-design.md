@@ -72,16 +72,35 @@ For people with `deceased_at` set, no future-tense properties.
 
 0.95+ for direct statements. 0.6–0.8 for strong implications. Below 0.5 usually means: don't extract.
 
-### v2.1 (v0.3 patch — current)
+### v2.1 (v0.3 patch)
 
 Same output schema and hard rules as v2. Fixes two common extraction misses on the Alfonso Morales fixture by adding **positive worked examples**:
 
 1. **`loves_music` from plural pronouns** — "They love music" must expand to one `loves_music=true` row per referent (tagged Alfonso + proposed Kimberly). Do not skip because the sentence uses "they" instead of naming each person.
 2. **`religion` distinct from devoutness uncertainty** — "at least nominally Christian" extracts as `religion=nominal Christian` even when the same paragraph later says "I'm not sure how devout they are." Uncertainty about devoutness does not cancel a stated religion fact.
 
-The output schema example now shows Kimberly's `proposed_properties` including both `loves_music` and `religion`.
+The output schema example shows Kimberly's `proposed_properties` including both `loves_music` and `religion`.
 
-## Output schema (v2 / v2.1)
+### v2.2 (v0.3 prayer-ready patch — current)
+
+Same output schema and hard rules as v2.1. Expands standardized property names so upcoming spaced-repetition and prayer-list features have stable keys.
+
+Added standardized names:
+- `current_prayer_requests`
+- `current_stressors`
+- `upcoming_life_events`
+- `health_concerns`
+- `family_concerns`
+- `spiritual_state`
+- `life_goals`
+- `unrealized_dreams`
+- `greatest_fears`
+- `salvation_story`
+- `spiritual_gifts`
+- `ministry_involvement`
+- `favorite_verse`
+
+## Output schema (v2 / v2.1 / v2.2)
 
 ```json
 {

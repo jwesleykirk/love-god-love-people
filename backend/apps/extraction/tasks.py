@@ -1,4 +1,4 @@
-"""Async extraction tasks (v0.3 — prompt v2.1 + proposed_persons)."""
+"""Async extraction tasks (v0.3 — prompt v2.2 + proposed_persons)."""
 from __future__ import annotations
 
 import logging
@@ -21,7 +21,7 @@ from apps.properties.models import (
 )
 
 from .models import ProposedPerson, ProposedPersonStatus
-from .prompts import v2_1 as prompt_v2
+from .prompts import v2_2 as prompt_v2
 from .services.openrouter import OpenRouterError, extract_json
 
 logger = logging.getLogger(__name__)

@@ -3,7 +3,7 @@
 Two layers:
 1. Persistence tests: feed a mocked LLM JSON output through _persist_extraction
    and assert the right rows land in PersonProperty / PropertyDef / ProposedPerson.
-2. Prompt structural tests: assert v2.1 contains the uncertainty discipline,
+2. Prompt structural tests: assert v2.2 contains the uncertainty discipline,
    plural-pronoun rules, and positive worked examples for loves_music and
    religion. The Alfonso Morales paragraph is a documented negative
    fixture — the live-extraction verification happens at deploy time.
@@ -20,7 +20,7 @@ from apps.properties.models import (
 )
 
 from .models import ProposedPerson, ProposedPersonStatus
-from .prompts import v2_1 as prompt_v2
+from .prompts import v2_2 as prompt_v2
 from .tasks import _persist_extraction
 
 
@@ -38,8 +38,8 @@ ALFONSO_PARAGRAPH = (
 class PromptV2StructureTests(TestCase):
     """The prompt itself encodes the rules. If these assertions fail, the prompt regressed."""
 
-    def test_version_is_v2_1(self):
-        self.assertEqual(prompt_v2.VERSION, "v2.1")
+    def test_version_is_v2_2(self):
+        self.assertEqual(prompt_v2.VERSION, "v2.2")
 
     def test_uncertainty_discipline_present(self):
         s = prompt_v2.SYSTEM_PROMPT.lower()
@@ -65,7 +65,26 @@ class PromptV2StructureTests(TestCase):
 
     def test_standardized_names_present(self):
         s = prompt_v2.SYSTEM_PROMPT
-        for name in ["loves_music", "current_school_type", "current_school_name", "approximate_birth_year", "religion"]:
+        for name in [
+            "loves_music",
+            "religion",
+            "current_prayer_requests",
+            "current_stressors",
+            "upcoming_life_events",
+            "health_concerns",
+            "family_concerns",
+            "spiritual_state",
+            "life_goals",
+            "unrealized_dreams",
+            "greatest_fears",
+            "salvation_story",
+            "spiritual_gifts",
+            "ministry_involvement",
+            "favorite_verse",
+            "current_school_type",
+            "current_school_name",
+            "approximate_birth_year",
+        ]:
             self.assertIn(name, s, f"prompt should mention standardized property '{name}'")
 
     def test_loves_music_positive_worked_example_present(self):
@@ -128,7 +147,7 @@ class ExistingPropertyPersistenceTests(TestCase):
         self.assertEqual(PersonProperty.objects.count(), 1)
         pp = PersonProperty.objects.first()
         self.assertEqual(pp.status, PersonPropertyStatus.PENDING_REVIEW)
-        self.assertEqual(pp.prompt_version, "v2.1")
+        self.assertEqual(pp.prompt_version, "v2.2")
 
 
 class ProposedPersonsPersistenceTests(TestCase):
@@ -263,7 +282,7 @@ class CreateProposedPersonTests(TestCase):
                      "data_type": "boolean", "confidence": 0.85},
                 ],
             },
-            prompt_version="v2.1",
+            prompt_version="v2.2",
         )
 
     def test_create_person_materializes_associations_and_properties(self):

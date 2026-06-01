@@ -29,7 +29,7 @@ Two layers:
 | `properties.PropertyDef` | The schema for AI-discoverable facts. AI proposes; Wesley curates. | `owner`, `name` (unique per owner, snake_case), `description`, `data_type_hint` (text/date/integer/boolean/enum/url), `status` (active/archived/merged), `merged_into`, `usage_count`, `first_proposed_at`, `first_proposed_from_entry`, `ai_confidence_on_creation`, `reviewed_at` |
 | `properties.PersonProperty` | A value attached to a Person via a PropertyDef. | `owner`, `person`, `property_def`, `value_text`, `ai_confidence`, `source_entry`, `prompt_version`, `model`, `status` (pending_review/approved/rejected/edited/superseded), `created_at`, `reviewed_at` |
 
-**Seeded PropertyDefs** (created by `apps/properties/migrations/0003_seed_standard_property_defs.py` for every User): `current_school_type`, `current_school_name`, `approximate_birth_year`.
+**Seeded PropertyDefs** (created by `apps/properties/migrations/0003_seed_standard_property_defs.py` + `0004_seed_prayer_and_core_property_defs.py` for every User): `current_school_type`, `current_school_name`, `approximate_birth_year`, `loves_music`, `religion`, `current_prayer_requests`, `current_stressors`, `upcoming_life_events`, `health_concerns`, `family_concerns`, `spiritual_state`.
 
 ### Extraction-side staging
 
@@ -68,7 +68,7 @@ Main queries hit the live tables only; history queries are opt-in. Currently exp
 │  if not OPENROUTER_API_KEY: mark "skipped" and return            │
 │  set extraction_status=running                                    │
 │  build persons_context, organizations_context, types_context     │
-│  build system+user prompt from apps/extraction/prompts/v2.py     │
+│  build system+user prompt from apps/extraction/prompts/v2_2.py   │
 │  call OpenRouter (services/openrouter.py)                        │
 │  on error: mark "error" + store extraction_error                 │
 │  on success: _persist_extraction(entry, result)                  │
