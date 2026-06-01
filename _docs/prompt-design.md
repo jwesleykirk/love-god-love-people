@@ -20,7 +20,7 @@ Same output schema as v0. Three things added to the system prompt:
 - **Person context now includes existing `associations` and `memberships`.** AI was told not to propose properties recoverable from first-class records — no `spouse_name` when a `spouse_of` association is present.
 - **Organization context** for any orgs tagged on the entry.
 
-### v2 (v0.3 — current)
+### v2 (v0.3)
 
 Adds a third output stream and two hard discipline rules.
 
@@ -72,7 +72,16 @@ For people with `deceased_at` set, no future-tense properties.
 
 0.95+ for direct statements. 0.6–0.8 for strong implications. Below 0.5 usually means: don't extract.
 
-## Output schema (v2)
+### v2.1 (v0.3 patch — current)
+
+Same output schema and hard rules as v2. Fixes two common extraction misses on the Alfonso Morales fixture by adding **positive worked examples**:
+
+1. **`loves_music` from plural pronouns** — "They love music" must expand to one `loves_music=true` row per referent (tagged Alfonso + proposed Kimberly). Do not skip because the sentence uses "they" instead of naming each person.
+2. **`religion` distinct from devoutness uncertainty** — "at least nominally Christian" extracts as `religion=nominal Christian` even when the same paragraph later says "I'm not sure how devout they are." Uncertainty about devoutness does not cancel a stated religion fact.
+
+The output schema example now shows Kimberly's `proposed_properties` including both `loves_music` and `religion`.
+
+## Output schema (v2 / v2.1)
 
 ```json
 {
@@ -100,7 +109,8 @@ For people with `deceased_at` set, no future-tense properties.
         {"to_person_id": 1, "association_type": "spouse_of"}
       ],
       "proposed_properties": [
-        {"property_name": "loves_music", "value": "true", "data_type": "boolean", "confidence": 0.85}
+        {"property_name": "loves_music", "value": "true", "data_type": "boolean", "confidence": 0.85},
+        {"property_name": "religion", "value": "nominal Christian", "data_type": "text", "confidence": 0.75}
       ]
     }
   ]

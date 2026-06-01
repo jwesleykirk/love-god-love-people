@@ -3,8 +3,9 @@
 Two layers:
 1. Persistence tests: feed a mocked LLM JSON output through _persist_extraction
    and assert the right rows land in PersonProperty / PropertyDef / ProposedPerson.
-2. Prompt structural tests: assert v2 contains the uncertainty discipline and
-   plural-pronoun rules. The Alfonso Morales paragraph is a documented negative
+2. Prompt structural tests: assert v2.1 contains the uncertainty discipline,
+   plural-pronoun rules, and positive worked examples for loves_music and
+   religion. The Alfonso Morales paragraph is a documented negative
    fixture — the live-extraction verification happens at deploy time.
 """
 from django.contrib.auth import get_user_model
@@ -19,7 +20,7 @@ from apps.properties.models import (
 )
 
 from .models import ProposedPerson, ProposedPersonStatus
-from .prompts import v2 as prompt_v2
+from .prompts import v2_1 as prompt_v2
 from .tasks import _persist_extraction
 
 
@@ -37,8 +38,8 @@ ALFONSO_PARAGRAPH = (
 class PromptV2StructureTests(TestCase):
     """The prompt itself encodes the rules. If these assertions fail, the prompt regressed."""
 
-    def test_version_is_v2(self):
-        self.assertEqual(prompt_v2.VERSION, "v2")
+    def test_version_is_v2_1(self):
+        self.assertEqual(prompt_v2.VERSION, "v2.1")
 
     def test_uncertainty_discipline_present(self):
         s = prompt_v2.SYSTEM_PROMPT.lower()
@@ -64,8 +65,20 @@ class PromptV2StructureTests(TestCase):
 
     def test_standardized_names_present(self):
         s = prompt_v2.SYSTEM_PROMPT
-        for name in ["current_school_type", "current_school_name", "approximate_birth_year", "religion"]:
+        for name in ["loves_music", "current_school_type", "current_school_name", "approximate_birth_year", "religion"]:
             self.assertIn(name, s, f"prompt should mention standardized property '{name}'")
+
+    def test_loves_music_positive_worked_example_present(self):
+        s = prompt_v2.SYSTEM_PROMPT.lower()
+        self.assertIn("positive worked examples", s)
+        self.assertIn("they love music", s)
+        self.assertIn("loves_music=true", s)
+
+    def test_religion_positive_worked_example_present(self):
+        s = prompt_v2.SYSTEM_PROMPT.lower()
+        self.assertIn("at least nominally christian", s)
+        self.assertIn("religion=nominal christian", s)
+        self.assertIn("different attribute", s)
 
     def test_alfonso_paragraph_builds_user_prompt(self):
         # Just verifies the prompt builder runs cleanly with realistic input —
@@ -115,7 +128,7 @@ class ExistingPropertyPersistenceTests(TestCase):
         self.assertEqual(PersonProperty.objects.count(), 1)
         pp = PersonProperty.objects.first()
         self.assertEqual(pp.status, PersonPropertyStatus.PENDING_REVIEW)
-        self.assertEqual(pp.prompt_version, "v2")
+        self.assertEqual(pp.prompt_version, "v2.1")
 
 
 class ProposedPersonsPersistenceTests(TestCase):
@@ -250,7 +263,7 @@ class CreateProposedPersonTests(TestCase):
                      "data_type": "boolean", "confidence": 0.85},
                 ],
             },
-            prompt_version="v2",
+            prompt_version="v2.1",
         )
 
     def test_create_person_materializes_associations_and_properties(self):
