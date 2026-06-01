@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { listEntries, type JournalEntry } from "../entries/api";
 import { listPeople, type Person } from "../people/api";
 import { Illustration, IllustrationBanner } from "@/components/Illustration";
+import { PersonAvatar } from "@/components/PersonAvatar";
 import { useAuth } from "../auth/AuthProvider";
 
 const POLL_MS = 5000;
@@ -141,8 +142,7 @@ export default function HomeRoute() {
                 key={p.id}
                 style={{ display: "inline-flex", alignItems: "center", gap: "var(--space-2)", textDecoration: "none" }}
               >
-                {/* ILLUSTRATION_PLACEHOLDER: {category}.svg */}
-                <Illustration slot={p.relationship_category} label={p.relationship_category[0].toUpperCase()} />
+                <PersonAvatar src={p.photo_thumbnail_url} alt={p.preferred_name || p.full_name} size={28} />
                 <span style={{ color: "var(--color-text)", fontSize: "var(--text-label)" }}>
                   {p.preferred_name || p.full_name}
                 </span>

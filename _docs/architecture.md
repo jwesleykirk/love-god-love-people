@@ -150,3 +150,48 @@ The visual system is documented in [`_docs/design-system.md`](./design-system.md
 **Components never hardcode hexes.** Always read from CSS variables. If you need a color outside the token set, propose adding it to `tokens.css` first.
 
 **Illustrations** sit in `frontend/public/illustrations/` and are referenced via `/illustrations/<slot>.svg`. Wesley generates the artwork separately (Midjourney). Until then, components render a styled placeholder via `<Illustration slot="..." />` from `frontend/src/components/Illustration.tsx`. Every placeholder location is tagged with the comment `ILLUSTRATION_PLACEHOLDER: <slot>.svg`.
+
+
+
+## Photos (Phase 4)
+
+Profile photos for Person records. The data flow is:
+
+1. **Client uploads** a single image to `POST /api/people/<id>/photo/` as multipart `file`.
+2. **`apps/photos/services/upload.py`** validates (size, MIME, decodes with Pillow), strips all EXIF metadata, auto-rotates, resizes to <=1024 px on the longest side, builds a 200x200 cover-cropped thumbnail, and writes both files as quality-85 JPEG.
+3. **Files land on the persistent volume** under `{DATA_VOLUME_PATH}/photos/{owner_id}/{person_id}/{uuid}.jpg` (and `{uuid}_thumb.jpg`).
+4. **`Person.photo_path` / `photo_thumbnail_path`** store only the relative path within the volume. The full filesystem path NEVER leaves the API.
+5. **Serving** is `GET /api/people/<id>/photo/` (or `?thumb=1`). The view enforces an owner check, then streams the file with `FileResponse` and a `private, max-age=3600` cache header.
+6. **Delete** is `DELETE /api/people/<id>/photo/`. The view removes both files from disk and nulls the DB columns.
+
+### Where the files live
+
+- **Production (Railway):** a volume mounted at `/data`, with `DATA_VOLUME_PATH=/data`. Survives deploys.
+- **Local dev:** defaults to `backend/data/` under the repo. `data/` is in `.gitignore` so user uploads never end up in version control.
+
+### Permissions model
+
+Every photo endpoint enforces `person.owner_id == request.user.id` before any disk I/O. The view returns 403 if not the owner, 404 if the photo does not exist. The serializer-generated `photo_url` and `photo_thumbnail_url` are API endpoints, not signed URLs or direct filesystem paths — the owner check runs on every fetch.
+
+### EXIF stripping (privacy, non-negotiable)
+
+Phones embed GPS coordinates, device serials, and timestamps in image EXIF. The upload service:
+
+1. Calls `ImageOps.exif_transpose` so the rotation tag is applied to the pixel data.
+2. Rebuilds the image into a fresh `Image.new(...)` so `info["exif"]` is gone.
+3. Writes JPEG without passing `exif=` to `Image.save`, so the output has empty EXIF blocks.
+
+Verified by `apps.photos.tests.ExifStrippingTest.test_exif_is_stripped` — that test embeds GPS data with `piexif`, uploads, fetches back, and asserts the GPS and 0th IFD dictionaries are empty.
+
+### File naming convention
+
+```
+{DATA_VOLUME_PATH}/photos/{owner_id}/{person_id}/{uuid_hex}.jpg
+{DATA_VOLUME_PATH}/photos/{owner_id}/{person_id}/{uuid_hex}_thumb.jpg
+```
+
+Every upload picks a fresh UUID, so replacing a photo never reuses a filesystem name (cache-friendly, and the old files are explicitly deleted in the upload view before the new paths are persisted).
+
+### History tracking
+
+`Person` is `django-simple-history`-tracked. The migration adds `photo_path`, `photo_thumbnail_path`, and `photo_updated_at` to both `Person` and `HistoricalPerson`, so photo replacement/deletion is captured in the audit trail with `change_reason` strings like `photo:upload:user_id=2` and `photo:delete:user_id=2`.

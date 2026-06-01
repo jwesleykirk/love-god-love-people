@@ -65,6 +65,7 @@ INSTALLED_APPS = [
     "apps.orgs",
     "apps.associations",
     "apps.future",
+    "apps.photos",
 ]
 
 SITE_ID = 1
@@ -238,6 +239,15 @@ Q_CLUSTER = {
 
 OPENROUTER_API_KEY = env("OPENROUTER_API_KEY", default="")
 OPENROUTER_MODEL = env("OPENROUTER_MODEL", default="anthropic/claude-sonnet-4.5")
+
+# ---------------------------------------------------------------------------
+# Photos — Persistent volume for user-uploaded images (Phase 4)
+# ---------------------------------------------------------------------------
+# On Railway, a volume is mounted at /data. Locally we default to backend/data/.
+# Files are NEVER served via /static or /media; instead the photos app streams
+# them through an owner-checked view. The DB stores only relative paths.
+DATA_VOLUME_PATH = env("DATA_VOLUME_PATH", default=str(BASE_DIR / "data"))
+
 
 # ---------------------------------------------------------------------------
 # Logging

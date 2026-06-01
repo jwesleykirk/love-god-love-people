@@ -40,6 +40,13 @@ npm run dev
 - Vite dev server: <http://localhost:5173> (proxies `/api/*` and `/accounts/*` to Django on 8000)
 - Django dev server: <http://localhost:8000>
 
+### Photo uploads (local dev)
+
+Photo files land on disk under `backend/data/photos/` by default — this is the local stand-in for the Railway volume. The directory is gitignored; nothing in it is ever committed. To override the location, set `DATA_VOLUME_PATH=/some/abs/path` in `.env`.
+
+On Railway, attach a persistent volume to the Django service (mount path `/data`) and set `DATA_VOLUME_PATH=/data` as an env var. See [`_docs/architecture.md`](./_docs/architecture.md#photos-phase-4) for the full data flow and privacy notes (EXIF stripping, owner-only access, file naming).
+
+
 To run the async extraction worker (only needed once `OPENROUTER_API_KEY` is set):
 
 ```bash

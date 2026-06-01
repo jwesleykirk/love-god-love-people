@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
+  deletePersonPhoto,
   getPerson,
   LIFE_STAGES,
   listPersonProperties,
   RELATIONSHIP_CATEGORIES,
   updatePerson,
+  uploadPersonPhoto,
   type LifeStage,
   type Person,
   type PersonProperty,
@@ -14,7 +16,7 @@ import {
 import { listEntries, type JournalEntry } from "../entries/api";
 import { listMemberships, type Membership } from "../orgs/api";
 import { AssociationsPanel } from "../associations/AssociationsPanel";
-import { Illustration } from "@/components/Illustration";
+import { PhotoUpload } from "@/components/PhotoUpload";
 import { SearchPicker } from "@/components/SearchPicker";
 
 type Tab = "profile" | "entries";
@@ -209,11 +211,18 @@ export default function PersonDetailRoute() {
 
       {/* Hero card */}
       <div className="card" style={{ display: "flex", gap: "var(--space-4)", alignItems: "center" }}>
-        {/* ILLUSTRATION_PLACEHOLDER: {category}.svg */}
-        <Illustration
-          slot={person.relationship_category}
-          size="xl"
-          label={person.relationship_category[0].toUpperCase()}
+        <PhotoUpload
+          photoUrl={person.photo_url}
+          alt={person.preferred_name || person.full_name}
+          size={96}
+          onUpload={async (file) => {
+            await uploadPersonPhoto(person.id, file);
+            await load();
+          }}
+          onDelete={async () => {
+            await deletePersonPhoto(person.id);
+            await load();
+          }}
         />
         <div style={{ flex: 1, minWidth: 0 }}>
           <h1 style={{ margin: 0, marginBottom: 4 }}>

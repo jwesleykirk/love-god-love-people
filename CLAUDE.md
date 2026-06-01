@@ -56,6 +56,9 @@ Three load-bearing patterns. All documented in detail in `_docs/architecture.md`
 - **Never put an Age input anywhere.** Birthday only. Age is derived for display. If only `approximate_birth_year` exists, display "~N years old (approximate)".
 - **Plural pronouns always expand to per-referent rows.** "Alfonso and Kimberly love music" → one `loves_music=true` row per person, never a single combined row.
 - **Uncertainty in entry text never produces extracted properties.** "I'm not sure how devout they are" → zero property extraction. The Alfonso Morales paragraph (see `_docs/prompt-design.md`) is the canonical regression test.
+- **Photos NEVER bypass the owner check.** Every read, write, and delete of a Person photo runs `person.owner_id == request.user.id` before touching the filesystem. No exceptions, no shortcuts, no "trusted" callers.
+- **EXIF stripping is non-negotiable.** The upload pipeline must always run through `apps/photos/services/upload.py`. That service auto-rotates, then rebuilds the image into a fresh `Image.new` to drop all metadata. Verified by `ExifStrippingTest`. Do not add a code path that writes uploaded image bytes to disk without going through this service.
+- **Raw filesystem paths NEVER leave the API.** `Person.photo_path` and `Person.photo_thumbnail_path` are internal. The serializer only exposes `photo_url` and `photo_thumbnail_url`, which are owner-checked API endpoints. Never serialize the relative path, never stream files via a static handler.
 - **Never fan out the data model with one-off columns for AI-discovered facts.** That's what `PropertyDef` is for. Promotion of a stable PropertyDef to a first-class column is a manual developer action with a migration.
 
 ## Source-of-truth map

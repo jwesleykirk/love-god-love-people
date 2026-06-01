@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { relationshipCategoryFilterItems } from "@/components/optionItems";
 import { SearchPicker } from "@/components/SearchPicker";
 import { listPeople, type Person, type RelationshipCategory } from "./api";
-import { Illustration } from "@/components/Illustration";
+import { PersonAvatar } from "@/components/PersonAvatar";
 
 const CATEGORY_LABEL: Record<string, string> = {
   family: "Family",
@@ -85,11 +85,10 @@ export default function PeopleListRoute() {
                 padding: "var(--space-4) var(--space-6)",
               }}
             >
-              {/* ILLUSTRATION_PLACEHOLDER: {p.relationship_category}.svg */}
-              <Illustration
-                slot={p.relationship_category}
-                size="lg"
-                label={p.relationship_category[0].toUpperCase()}
+              <PersonAvatar
+                src={p.photo_thumbnail_url}
+                alt={p.preferred_name || p.full_name}
+                size={40}
               />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ color: "var(--color-text)", fontSize: "var(--text-body-lg)", fontWeight: 600, fontFamily: "var(--font-serif)" }}>

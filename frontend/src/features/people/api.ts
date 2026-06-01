@@ -14,6 +14,9 @@ export type Person = {
   deceased_at: string | null;
   notes_markdown: string;
   archived: boolean;
+  photo_url: string | null;
+  photo_thumbnail_url: string | null;
+  photo_updated_at: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -83,4 +86,37 @@ export type PersonPropertyList = {
 };
 export function listPersonProperties(personId: number) {
   return apiFetch<PersonPropertyList>(`/api/properties/?person_id=${personId}`);
+}
+
+
+/**
+ * Photo upload / delete helpers.
+ *
+ * Note: upload uses multipart/form-data, so we call fetch() directly rather
+ * than going through apiFetch (which JSON-encodes the body). CSRF token is
+ * read from cookies the same way.
+ */
+function getCsrfToken(): string {
+  const m = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
+  return m ? decodeURIComponent(m[1]) : "";
+}
+
+export async function uploadPersonPhoto(id: number, file: File): Promise<Person> {
+  const form = new FormData();
+  form.append("file", file);
+  const resp = await fetch(`/api/people/${id}/photo/`, {
+    method: "POST",
+    headers: { "X-CSRFToken": getCsrfToken() },
+    credentials: "same-origin",
+    body: form,
+  });
+  if (!resp.ok) {
+    const text = await resp.text();
+    throw new Error(text || `upload failed (${resp.status})`);
+  }
+  return (await resp.json()) as Person;
+}
+
+export async function deletePersonPhoto(id: number): Promise<Person> {
+  return apiFetch<Person>(`/api/people/${id}/photo/`, { method: "DELETE" });
 }

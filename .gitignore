@@ -54,3 +54,9 @@ pnpm-debug.log*
 *.tsbuildinfo
 frontend/vite.config.d.ts
 frontend/vite.config.js
+
+
+# Phase 4 — local photo volume (the prod equivalent is a Railway volume at /data).
+# These are user uploads and must NEVER land in git.
+data/
+backend/data/

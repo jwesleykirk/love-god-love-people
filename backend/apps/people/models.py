@@ -53,6 +53,12 @@ class Person(models.Model):
     deceased_at = models.DateField(null=True, blank=True)
     notes_markdown = models.TextField(blank=True)
     archived = models.BooleanField(default=False)
+    # Phase 4 — profile photo. Files live on the Railway volume; DB stores
+    # only the relative path within DATA_VOLUME_PATH (e.g. "photos/2/15/abc.jpg").
+    # Raw paths NEVER leave the API — clients receive owner-checked endpoint URLs.
+    photo_path = models.CharField(max_length=255, null=True, blank=True)
+    photo_thumbnail_path = models.CharField(max_length=255, null=True, blank=True)
+    photo_updated_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
