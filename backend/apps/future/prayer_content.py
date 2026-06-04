@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeout, as_completed
 
 from django.conf import settings
 from django.utils import timezone
@@ -14,6 +15,14 @@ from .models import PrayerFrequency, PrayerSchedule
 from .services import is_meaningful_value
 
 logger = logging.getLogger(__name__)
+
+# Keep "Begin prayer time" responsive no matter how many people are due or how
+# slow OpenRouter is. Live generation runs in parallel under a hard total
+# budget; anything not finished in time falls back to template prayer text.
+AI_PER_CALL_TIMEOUT_SECONDS = 12
+AI_TOTAL_BUDGET_SECONDS = 14
+AI_MAX_SEGMENTS = 12
+AI_MAX_WORKERS = 4
 
 PRAYER_INTRO = (
     "We come together in this quiet moment. Let's open our hearts "
