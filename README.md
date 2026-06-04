@@ -63,8 +63,8 @@ Both off by default so a fresh Railway deploy boots without any secrets configur
 
 ## Shipped (practice)
 
-- **Remember** — Spaced-repetition flashcards for approved properties (`/remember`). Deck auto-builds from Review-approved facts; tap-to-reveal session with Again / Got it / Easy.
-- **Pray** — Per-person prayer cadence and peaceful session UI (`/pray`, `/pray/settings`).
+- **Remember** — Spaced-repetition flashcards for approved properties (`/remember`).
+- **Pray** — Unified guided prayer time (`/pray`, `/pray/session`): CRM due-queue, per-person rhythm, intro → guided segment per person (AI when `OPENROUTER_API_KEY` set) → pause → Amen.
 
 ## Planned
 

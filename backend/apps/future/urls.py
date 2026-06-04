@@ -8,6 +8,8 @@ from .views import (
     PrayerQueueView,
     PrayerScheduleUpdateView,
     PrayerSchedulesView,
+    PrayerSessionCompleteView,
+    PrayerSessionView,
 )
 
 flashcard_urlpatterns = [
@@ -18,6 +20,12 @@ flashcard_urlpatterns = [
 
 prayer_urlpatterns = [
     path("queue/", PrayerQueueView.as_view(), name="prayer-queue"),
+    path("session/", PrayerSessionView.as_view(), name="prayer-session"),
+    path(
+        "session/complete/",
+        PrayerSessionCompleteView.as_view(),
+        name="prayer-session-complete",
+    ),
     path("schedules/", PrayerSchedulesView.as_view(), name="prayer-schedules"),
     path(
         "schedules/<int:person_id>/",

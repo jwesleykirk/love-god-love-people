@@ -91,3 +91,41 @@ class FlashcardAndPrayerTests(TestCase):
         data = self.client.get("/api/prayer/queue/").json()
         self.assertEqual(data["stats"]["due_count"], 1)
         self.assertEqual(data["due"][0]["person_name"], "Karie")
+
+    def test_prayer_session_and_complete(self):
+        PrayerSchedule.objects.create(
+            owner_id=self.user_id,
+            person=self.person,
+            frequency=PrayerFrequency.DAILY,
+            next_due_at=timezone.now(),
+        )
+        session = self.client.get("/api/prayer/session/").json()
+        self.assertEqual(len(session["segments"]), 1)
+        self.assertIn("intro", session)
+        self.assertTrue(session["segments"][0]["guided_text"])
+
+        complete = self.client.post(
+            "/api/prayer/session/complete/",
+            {"person_ids": [self.person.pk]},
+            format="json",
+        ).json()
+        self.assertEqual(complete["count"], 1)
+        schedule = PrayerSchedule.objects.get(person=self.person)
+        self.assertIsNotNone(schedule.last_prayed_at)
+
+    def test_deceased_person_gets_remembrance_not_future_tense(self):
+        from datetime import date
+
+        self.person.deceased_at = date(2020, 1, 1)
+        self.person.save(update_fields=["deceased_at"])
+        PrayerSchedule.objects.create(
+            owner_id=self.user_id,
+            person=self.person,
+            frequency=PrayerFrequency.DAILY,
+            next_due_at=timezone.now(),
+        )
+        session = self.client.get("/api/prayer/session/").json()
+        self.assertEqual(len(session["segments"]), 1)
+        text = session["segments"][0]["guided_text"].lower()
+        self.assertIn("thank you for the life", text)
+        self.assertNotIn("days ahead", text)

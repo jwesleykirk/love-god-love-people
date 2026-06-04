@@ -83,3 +83,52 @@ def extract_json(
         return json.loads(content)
     except json.JSONDecodeError as exc:
         raise OpenRouterError(f"non-JSON response: {content[:500]}") from exc
+
+
+def complete_text(
+    system_prompt: str,
+    user_prompt: str,
+    *,
+    model: str | None = None,
+    max_tokens: int = 200,
+    temperature: float = 0.7,
+    timeout: float = DEFAULT_TIMEOUT_SECONDS,
+) -> str:
+    """Plain-text completion for guided prayer scripts (no JSON mode)."""
+    api_key = getattr(settings, "OPENROUTER_API_KEY", "")
+    if not api_key:
+        raise OpenRouterError("OPENROUTER_API_KEY is not set")
+
+    model_slug = model or getattr(settings, "OPENROUTER_MODEL", "anthropic/claude-sonnet-4.5")
+    payload = {
+        "model": model_slug,
+        "messages": [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
+        ],
+        "max_tokens": max_tokens,
+        "temperature": temperature,
+    }
+
+    response = requests.post(
+        f"{OPENROUTER_BASE_URL}/chat/completions",
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://github.com/jwesleykirk/love-god-love-people",
+            "X-Title": "Love God Love People",
+        },
+        json=payload,
+        timeout=timeout,
+    )
+    if not response.ok:
+        raise OpenRouterError(
+            f"OpenRouter {response.status_code}: {response.text[:500]}"
+        )
+
+    body = response.json()
+    try:
+        content = body["choices"][0]["message"]["content"]
+    except (KeyError, IndexError) as exc:
+        raise OpenRouterError(f"unexpected response shape: {body}") from exc
+    return content.strip()

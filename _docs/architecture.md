@@ -39,14 +39,14 @@ Two layers:
 
 ### Phase 2 / Phase 3 — Remember + Pray
 
-`future.PrayerSchedule` and `future.ReviewMemo` back two practice surfaces:
-
 | Surface | Routes | API |
 |---|---|---|
 | **Remember** (spaced repetition) | `/remember`, `/remember/session` | `GET /api/flashcards/queue/`, `POST …/review/`, `POST …/suspend/` |
-| **Pray** (prayer cadence) | `/pray`, `/pray/session`, `/pray/settings` | `GET /api/prayer/queue/`, `POST /api/prayer/<person_id>/prayed/`, `PATCH /api/prayer/schedules/<person_id>/` |
+| **Pray** (unified guided session) | `/pray`, `/pray/session` | `GET /api/prayer/session/`, `POST /api/prayer/session/complete/`, `GET /api/prayer/queue/` (Home stats), `PATCH /api/prayer/schedules/<person_id>/` |
 
-On queue fetch, approved/edited `PersonProperty` rows with meaningful `value_text` auto-sync into `ReviewMemo`. Ratings (`again` / `good` / `easy`) adjust interval and `due_at` (Anki-lite). Prayer frequencies are per-person (`daily` / `weekly` / `monthly` / `none`); marking prayed advances `next_due_at`.
+**Pray** is one feature: CRM due-queue + per-person rhythm + guided liturgy (settle → intro → segment per person with AI-or-fallback script from approved properties → configurable pause → Amen). `apps/future/prayer_content.py` builds segments; OpenRouter optional for spoken-style prompts. Completing a session batch-updates `PrayerSchedule` for all `person_ids` prayed for.
+
+Remember: approved/edited meaningful `PersonProperty` rows auto-sync into `ReviewMemo`; ratings adjust `due_at` (Anki-lite).
 
 ### Audit history
 

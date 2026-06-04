@@ -700,3 +700,87 @@ button.prayer-cta:hover {
 .prayer-schedule-row {
   padding: var(--space-4) 0;
 }
+
+.home-prayer-altar {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  margin-bottom: var(--space-4);
+  position: relative;
+}
+.home-prayer-altar:hover {
+  text-decoration: none;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+.home-prayer-altar-title {
+  font-family: var(--font-serif);
+  font-size: var(--text-h2);
+  margin: 0 0 var(--space-2);
+}
+.home-prayer-altar-cta {
+  display: inline-block;
+  margin-top: var(--space-4);
+  font-family: var(--font-serif);
+  font-weight: 600;
+  color: var(--color-primary-dark);
+}
+.home-remember-link {
+  display: block;
+  margin-bottom: var(--space-6);
+  font-size: var(--text-label);
+  text-decoration: none;
+}
+.home-remember-link:hover { text-decoration: underline; }
+
+.prayer-rhythm-toggle {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
+  background: transparent;
+  color: inherit;
+  border: none;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+.prayer-rhythm-toggle:hover { background: transparent; }
+
+.prayer-settle {
+  text-align: center;
+  padding: var(--space-12) var(--space-4);
+}
+.prayer-settle-text {
+  font-family: var(--font-serif);
+  font-size: var(--text-body-lg);
+  color: var(--color-text-muted);
+  margin: var(--space-4) 0 var(--space-8);
+  line-height: 1.5;
+}
+
+.prayer-guided-text {
+  font-family: var(--font-serif);
+  font-size: var(--text-body-lg);
+  line-height: 1.55;
+  margin: 0;
+  text-align: left;
+}
+.prayer-context-list {
+  margin-top: var(--space-4);
+  font-size: var(--text-label);
+}
+.prayer-context-list > li {
+  padding: var(--space-2) 0;
+  border-bottom: none;
+}
+
+.prayer-rest {
+  text-align: center;
+}
+.prayer-rest-label {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: var(--text-caption);
+}

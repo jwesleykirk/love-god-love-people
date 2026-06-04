@@ -9,24 +9,24 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.people.models import Person
-from apps.properties.models import PersonProperty, PersonPropertyStatus
 
 from .models import PrayerFrequency, PrayerSchedule, ReviewMemo
+from .prayer_content import (
+    PRAYER_INTRO,
+    build_due_segments,
+    estimate_session_minutes,
+    person_display,
+)
 from .services import (
     RATING_AGAIN,
     RATING_EASY,
     RATING_GOOD,
     apply_flashcard_rating,
     ensure_prayer_schedule,
-    is_meaningful_value,
     mark_prayed,
     sync_review_memos,
     update_prayer_frequency,
 )
-
-
-def _person_display(person: Person) -> str:
-    return person.preferred_name.strip() or person.full_name
 
 
 def _format_property_label(name: str) -> str:
@@ -66,7 +66,7 @@ class FlashcardQueueView(APIView):
                 "due": due_flag,
                 "interval_days": m.interval_days,
                 "person_id": person.pk,
-                "person_name": _person_display(person),
+                "person_name": person_display(person),
                 "person_category": person.relationship_category,
                 "property_name": pp.property_def.name,
                 "property_label": _format_property_label(pp.property_def.name),
@@ -118,7 +118,7 @@ class FlashcardReviewView(APIView):
                 "id": memo.pk,
                 "due_at": memo.due_at.isoformat() if memo.due_at else None,
                 "interval_days": memo.interval_days,
-                "person_name": _person_display(pp.person),
+                "person_name": person_display(pp.person),
                 "property_label": _format_property_label(pp.property_def.name),
                 "answer": pp.value_text.strip(),
             }
@@ -139,84 +139,93 @@ class FlashcardSuspendView(APIView):
 
 
 class PrayerQueueView(APIView):
-    """GET /api/prayer/queue/ — people due for prayer today."""
+    """GET /api/prayer/queue/ — lightweight stats for Home (full session at /session/)."""
 
     def get(self, request):
         owner = request.user
-        now = timezone.now()
-
-        people = Person.objects.filter(owner=owner, archived=False).order_by("full_name")
-        schedules = {
-            s.person_id: s
-            for s in PrayerSchedule.objects.filter(owner=owner).select_related("person")
-        }
-
-        due_cards = []
-        all_scheduled = []
-
-        for person in people:
-            schedule = schedules.get(person.pk)
-            if not schedule or schedule.frequency == PrayerFrequency.NONE:
-                continue
-            all_scheduled.append(schedule)
-            is_due = schedule.next_due_at is None or schedule.next_due_at <= now
-            if not is_due:
-                continue
-
-            prompts = self._prayer_prompts(owner, person)
-            due_cards.append(
-                {
-                    "person_id": person.pk,
-                    "person_name": _person_display(person),
-                    "full_name": person.full_name,
-                    "relationship_category": person.relationship_category,
-                    "frequency": schedule.frequency,
-                    "last_prayed_at": (
-                        schedule.last_prayed_at.isoformat()
-                        if schedule.last_prayed_at
-                        else None
-                    ),
-                    "next_due_at": (
-                        schedule.next_due_at.isoformat() if schedule.next_due_at else None
-                    ),
-                    "prompts": prompts,
-                }
-            )
-
+        segments = build_due_segments(owner, generate_ai=False)
+        scheduled_count = PrayerSchedule.objects.filter(owner=owner).exclude(
+            frequency=PrayerFrequency.NONE
+        ).count()
+        due_cards = [
+            {
+                "person_id": s["person_id"],
+                "person_name": s["person_name"],
+                "full_name": s["full_name"],
+                "relationship_category": s["relationship_category"],
+                "frequency": s["frequency"],
+                "prompts": s["context_lines"],
+            }
+            for s in segments
+        ]
         return Response(
             {
                 "due": due_cards,
                 "stats": {
                     "due_count": len(due_cards),
-                    "scheduled_count": len(all_scheduled),
+                    "scheduled_count": scheduled_count,
+                    "estimated_minutes": estimate_session_minutes(len(due_cards)),
                 },
                 "fetched_at": datetime.now(dt_tz.utc).isoformat(),
             }
         )
 
-    def _prayer_prompts(self, owner, person: Person, limit: int = 4) -> list[str]:
-        rows = (
-            PersonProperty.objects.filter(
-                owner=owner,
-                person=person,
-                status__in=(
-                    PersonPropertyStatus.APPROVED,
-                    PersonPropertyStatus.EDITED,
-                ),
-            )
-            .select_related("property_def")
-            .order_by("-reviewed_at", "-created_at")[:limit]
+
+class PrayerSessionView(APIView):
+    """GET /api/prayer/session/ — intro + guided segments for today's prayer time."""
+
+    def get(self, request):
+        from django.conf import settings as dj_settings
+
+        owner = request.user
+        pause = int(request.query_params.get("pause_seconds", 30))
+        pause = max(10, min(100, pause))
+
+        segments = build_due_segments(owner, generate_ai=True)
+        scheduled_count = PrayerSchedule.objects.filter(owner=owner).exclude(
+            frequency=PrayerFrequency.NONE
+        ).count()
+
+        return Response(
+            {
+                "intro": PRAYER_INTRO,
+                "pause_seconds_default": pause,
+                "segments": segments,
+                "stats": {
+                    "due_count": len(segments),
+                    "scheduled_count": scheduled_count,
+                    "estimated_minutes": estimate_session_minutes(len(segments), pause),
+                },
+                "ai_enabled": bool(getattr(dj_settings, "OPENROUTER_API_KEY", "")),
+                "fetched_at": datetime.now(dt_tz.utc).isoformat(),
+            }
         )
-        prompts = []
-        for pp in rows:
-            if not is_meaningful_value(pp.value_text):
+
+
+class PrayerSessionCompleteView(APIView):
+    """POST /api/prayer/session/complete/ — body: { person_ids: [1,2] }"""
+
+    def post(self, request):
+        person_ids = request.data.get("person_ids") or []
+        if not isinstance(person_ids, list):
+            return Response(
+                {"error": "person_ids must be a list"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        marked = []
+        for pid in person_ids:
+            try:
+                person = Person.objects.get(pk=pid, owner=request.user)
+            except Person.DoesNotExist:
                 continue
-            label = _format_property_label(pp.property_def.name)
-            prompts.append(f"{label}: {pp.value_text.strip()}")
-        if person.notes_markdown.strip():
-            snippet = person.notes_markdown.strip().split("\n")[0][:120]
-            prompts.append(snippet)
-        return prompts[:limit]
+            schedule = ensure_prayer_schedule(request.user, person)
+            if schedule.frequency == PrayerFrequency.NONE:
+                continue
+            mark_prayed(schedule)
+            marked.append(person.pk)
+
+        return Response({"marked_person_ids": marked, "count": len(marked)})
 
 
 class PrayerMarkView(APIView):
@@ -262,7 +271,7 @@ class PrayerSchedulesView(APIView):
             rows.append(
                 {
                     "person_id": person.pk,
-                    "person_name": _person_display(person),
+                    "person_name": person_display(person),
                     "relationship_category": person.relationship_category,
                     "frequency": (
                         schedule.frequency if schedule else PrayerFrequency.NONE

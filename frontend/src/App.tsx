@@ -29,13 +29,13 @@ function BottomNav() {
         <span className="bn-icon">+</span>
         <span>Entry</span>
       </NavLink>
+      <NavLink to="/pray" className={is("/pray") ? "active" : ""}>
+        <span className="bn-icon">🙏</span>
+        <span>Pray</span>
+      </NavLink>
       <NavLink to="/review" className={is("/review") ? "active" : ""}>
         <span className="bn-icon">✓</span>
         <span>Review</span>
-      </NavLink>
-      <NavLink to="/orgs" className={is("/orgs") ? "active" : ""}>
-        <span className="bn-icon">▢</span>
-        <span>Orgs</span>
       </NavLink>
     </nav>
   );

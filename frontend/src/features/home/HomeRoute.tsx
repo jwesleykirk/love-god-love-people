@@ -83,33 +83,27 @@ export default function HomeRoute() {
       <h1 className="hero-title">{greetingFor()}, {firstName}.</h1>
       <p className="hero-sub">Who is on your heart today?</p>
 
-      <div className="home-practice-row">
-        <Link to="/pray" className="card home-practice-card home-practice-card--prayer">
-          <div className="row" style={{ gap: "var(--space-4)", alignItems: "center" }}>
-            {/* ILLUSTRATION_PLACEHOLDER: prayer-hero.svg */}
-            <Illustration slot="prayer-hero" size="lg" label="prayer" />
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <h3 style={{ margin: 0 }}>Pray</h3>
-              <p className="muted" style={{ margin: 0 }}>
-                {duePrayers > 0
-                  ? `${duePrayers} ${duePrayers === 1 ? "person" : "people"} waiting today`
-                  : "Set a rhythm · enter prayer time"}
-              </p>
-            </div>
-          </div>
-        </Link>
-
-        <Link to="/remember" className="card home-practice-card home-practice-card--remember">
+      <Link to="/pray" className="card card--paper home-prayer-altar">
+        <div className="row" style={{ gap: "var(--space-4)", alignItems: "center" }}>
+          {/* ILLUSTRATION_PLACEHOLDER: prayer-hero.svg */}
+          <Illustration slot="prayer-hero" size="lg" label="prayer" />
           <div style={{ flex: 1, minWidth: 0 }}>
-            <h3 style={{ margin: 0 }}>Remember</h3>
+            <h2 className="home-prayer-altar-title">Prayer time</h2>
             <p className="muted" style={{ margin: 0 }}>
-              {dueFlashcards > 0
-                ? `${dueFlashcards} ${dueFlashcards === 1 ? "card" : "cards"} due today`
-                : "Recall what you know about your people"}
+              {duePrayers > 0
+                ? `${duePrayers} ${duePrayers === 1 ? "person" : "people"} · guided session`
+                : "Begin a quiet guided prayer"}
             </p>
           </div>
+        </div>
+        <span className="home-prayer-altar-cta">Begin →</span>
+      </Link>
+
+      {dueFlashcards > 0 && (
+        <Link to="/remember" className="home-remember-link muted">
+          Remember · {dueFlashcards} {dueFlashcards === 1 ? "card" : "cards"} due today →
         </Link>
-      </div>
+      )}
 
       {/* Recent journaling */}
       <div className="card">
