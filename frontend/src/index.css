@@ -467,3 +467,236 @@ nav.bottom-nav .bn-icon { font-size: 1.25rem; }
   color: var(--color-text);
 }
 .chip-btn--active::after { content: " ✓"; }
+
+/* ──────── Devotional / practice (Remember + Pray) ──────── */
+
+.devotional-screen {
+  min-height: 60vh;
+}
+
+.devotional-screen--prayer {
+  background: linear-gradient(
+    180deg,
+    var(--color-bg) 0%,
+    color-mix(in srgb, var(--color-primary) 12%, var(--color-bg)) 100%
+  );
+}
+
+.session-layout {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.session-chrome {
+  margin-bottom: var(--space-2);
+}
+
+.session-back {
+  font-size: var(--text-label);
+  color: var(--color-text-muted);
+  text-decoration: none;
+}
+.session-back:hover { color: var(--color-text); text-decoration: none; }
+
+.session-caption {
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-caption);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.session-progress {
+  margin-top: var(--space-3);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.session-progress-track {
+  flex: 1;
+  height: 4px;
+  background: var(--color-border);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+}
+.session-progress-fill {
+  height: 100%;
+  background: var(--color-primary);
+  border-radius: var(--radius-pill);
+  transition: width 0.2s ease;
+}
+.devotional-screen--remember .session-progress-fill {
+  background: var(--color-remember-accent);
+}
+.session-progress-label {
+  font-size: var(--text-caption);
+  white-space: nowrap;
+}
+
+.devotional-card {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-8) var(--space-6);
+  box-shadow: var(--shadow-md);
+  text-align: center;
+}
+.devotional-card--prayer {
+  border-color: color-mix(in srgb, var(--color-primary) 35%, var(--color-border));
+}
+.devotional-card--remember {
+  border-color: color-mix(in srgb, var(--color-remember-accent) 25%, var(--color-border));
+}
+
+.devotional-eyebrow {
+  font-size: var(--text-caption);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-prayer-muted);
+  margin: 0 0 var(--space-4);
+  font-family: var(--font-sans);
+}
+
+.devotional-title {
+  font-family: var(--font-serif);
+  font-size: var(--text-h2);
+  font-weight: 600;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.devotional-subtitle {
+  font-family: var(--font-serif);
+  font-size: var(--text-body-lg);
+  font-style: italic;
+  color: var(--color-prayer-muted);
+  margin: var(--space-3) 0 0;
+}
+
+.devotional-prompt--tap {
+  cursor: pointer;
+}
+
+.devotional-hint {
+  margin: var(--space-6) 0 0;
+  font-style: italic;
+}
+
+.devotional-answer {
+  font-family: var(--font-serif);
+  font-size: var(--text-h2);
+  margin: 0;
+  line-height: 1.25;
+}
+
+.devotional-body {
+  margin-top: var(--space-8);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--color-border);
+}
+
+.devotional-footer {
+  margin-top: var(--space-6);
+}
+
+.rating-row {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.rating-row button {
+  flex: 1;
+  min-width: 5rem;
+  max-width: 8rem;
+}
+.rating-row--prayer button {
+  max-width: none;
+}
+.rating-row--prayer .prayer-cta {
+  flex: 2;
+}
+
+button.prayer-cta {
+  background: var(--color-primary);
+  color: var(--color-text);
+  font-family: var(--font-serif);
+  font-weight: 600;
+}
+button.prayer-cta:hover {
+  background: var(--color-primary-dark);
+  color: var(--color-card);
+}
+
+.remember-stat-number,
+.prayer-stat-number {
+  font-family: var(--font-serif);
+  font-size: 3.5rem;
+  line-height: 1;
+  margin: 0;
+}
+.remember-stat-label,
+.prayer-stat-label {
+  font-size: var(--text-body-lg);
+  color: var(--color-text-muted);
+  margin: var(--space-2) 0 0;
+}
+
+.prayer-complete {
+  text-align: center;
+}
+.prayer-complete-title {
+  font-family: var(--font-serif);
+  font-size: var(--text-h1);
+  margin: 0;
+  color: var(--color-prayer-muted);
+}
+
+.prayer-prompt-list > li {
+  text-align: left;
+  font-size: var(--text-body-lg);
+  line-height: 1.5;
+  padding: var(--space-3) 0;
+}
+
+.prayer-session-illust {
+  display: flex;
+  justify-content: center;
+  margin: var(--space-2) 0;
+}
+
+.session-skip {
+  width: 100%;
+  margin-top: var(--space-2);
+}
+
+.home-practice-row {
+  display: grid;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+@media (min-width: 560px) {
+  .home-practice-row {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.home-practice-card {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  margin-bottom: 0;
+  transition: box-shadow 0.15s ease, transform 0.05s ease;
+}
+.home-practice-card:hover {
+  text-decoration: none;
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+.home-practice-card--prayer h3,
+.home-practice-card--remember h3 {
+  font-family: var(--font-serif);
+}
+
+.prayer-schedule-row {
+  padding: var(--space-4) 0;
+}

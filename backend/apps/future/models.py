@@ -51,6 +51,10 @@ class ReviewMemo(models.Model):
     ease_factor = models.FloatField(default=2.5)
     interval_days = models.IntegerField(default=1)
     due_at = models.DateTimeField(null=True, blank=True)
+    suspended = models.BooleanField(
+        default=False,
+        help_text="When true, card is removed from the active review deck.",
+    )
 
     class Meta:
         indexes = [models.Index(fields=["due_at"])]

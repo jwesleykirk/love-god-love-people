@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { listEntries, type JournalEntry } from "../entries/api";
+import { fetchPrayerQueue } from "../prayer/api";
+import { fetchFlashcardQueue } from "../remember/api";
 import { listPeople, type Person } from "../people/api";
 import { Illustration, IllustrationBanner } from "@/components/Illustration";
 import { useAuth } from "../auth/AuthProvider";
@@ -40,6 +42,8 @@ export default function HomeRoute() {
   const { auth } = useAuth();
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [people, setPeople] = useState<Person[]>([]);
+  const [dueFlashcards, setDueFlashcards] = useState(0);
+  const [duePrayers, setDuePrayers] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -48,10 +52,17 @@ export default function HomeRoute() {
 
     async function pull() {
       try {
-        const [ee, pp] = await Promise.all([listEntries(), listPeople()]);
+        const [ee, pp, flash, prayer] = await Promise.all([
+          listEntries(),
+          listPeople(),
+          fetchFlashcardQueue().catch(() => null),
+          fetchPrayerQueue().catch(() => null),
+        ]);
         if (cancelled) return;
         setEntries(ee.results.slice(0, 5));
         setPeople(pp.results);
+        setDueFlashcards(flash?.stats.due_count ?? 0);
+        setDuePrayers(prayer?.stats.due_count ?? 0);
         setError(null);
         if (ee.results.some((e) => e.extraction_status === "pending" || e.extraction_status === "running")) {
           timer = setTimeout(pull, POLL_MS);
@@ -72,16 +83,32 @@ export default function HomeRoute() {
       <h1 className="hero-title">{greetingFor()}, {firstName}.</h1>
       <p className="hero-sub">Who is on your heart today?</p>
 
-      {/* Prayer card — Phase 3 stub */}
-      <div className="card">
-        <div className="row" style={{ gap: "var(--space-4)", alignItems: "center" }}>
-          {/* ILLUSTRATION_PLACEHOLDER: prayer-hero.svg */}
-          <Illustration slot="prayer-hero" size="lg" label="prayer" />
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <h3 style={{ margin: 0 }}>Today's prayers</h3>
-            <p className="muted" style={{ margin: 0 }}>The prayer engine arrives in a later phase.</p>
+      <div className="home-practice-row">
+        <Link to="/pray" className="card home-practice-card home-practice-card--prayer">
+          <div className="row" style={{ gap: "var(--space-4)", alignItems: "center" }}>
+            {/* ILLUSTRATION_PLACEHOLDER: prayer-hero.svg */}
+            <Illustration slot="prayer-hero" size="lg" label="prayer" />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <h3 style={{ margin: 0 }}>Pray</h3>
+              <p className="muted" style={{ margin: 0 }}>
+                {duePrayers > 0
+                  ? `${duePrayers} ${duePrayers === 1 ? "person" : "people"} waiting today`
+                  : "Set a rhythm · enter prayer time"}
+              </p>
+            </div>
           </div>
-        </div>
+        </Link>
+
+        <Link to="/remember" className="card home-practice-card home-practice-card--remember">
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <h3 style={{ margin: 0 }}>Remember</h3>
+            <p className="muted" style={{ margin: 0 }}>
+              {dueFlashcards > 0
+                ? `${dueFlashcards} ${dueFlashcards === 1 ? "card" : "cards"} due today`
+                : "Recall what you know about your people"}
+            </p>
+          </div>
+        </Link>
       </div>
 
       {/* Recent journaling */}

@@ -37,9 +37,16 @@ Two layers:
 |---|---|---|
 | `extraction.ProposedPerson` | A Person the AI inferred from an entry but Wesley didn't tag. Awaits Wesley's Create/Reject decision in the Review Console. | `owner`, `source_entry`, `full_name`, `preferred_name`, `life_stage`, `ai_confidence`, `proposal_payload` (JSON: proposed associations + properties), `prompt_version`, `model`, `status` (pending_review/created/rejected), `resolved_to_person` (FK, set on Create) |
 
-### Phase-2 / Phase-3 scaffolds
+### Phase 2 / Phase 3 — Remember + Pray
 
-`future.PrayerSchedule` and `future.ReviewMemo` are scaffolded so the schema is already in place when those features are built. No UI or business logic references them yet.
+`future.PrayerSchedule` and `future.ReviewMemo` back two practice surfaces:
+
+| Surface | Routes | API |
+|---|---|---|
+| **Remember** (spaced repetition) | `/remember`, `/remember/session` | `GET /api/flashcards/queue/`, `POST …/review/`, `POST …/suspend/` |
+| **Pray** (prayer cadence) | `/pray`, `/pray/session`, `/pray/settings` | `GET /api/prayer/queue/`, `POST /api/prayer/<person_id>/prayed/`, `PATCH /api/prayer/schedules/<person_id>/` |
+
+On queue fetch, approved/edited `PersonProperty` rows with meaningful `value_text` auto-sync into `ReviewMemo`. Ratings (`again` / `good` / `easy`) adjust interval and `due_at` (Anki-lite). Prayer frequencies are per-person (`daily` / `weekly` / `monthly` / `none`); marking prayed advances `next_due_at`.
 
 ### Audit history
 

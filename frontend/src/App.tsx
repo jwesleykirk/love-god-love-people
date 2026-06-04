@@ -5,6 +5,8 @@ import { entriesRoutes } from "./features/entries/routes";
 import { reviewRoutes } from "./features/review/routes";
 import { orgsRoutes } from "./features/orgs/routes";
 import { homeRoutes } from "./features/home/routes";
+import { rememberRoutes } from "./features/remember/routes";
+import { prayerRoutes } from "./features/prayer/routes";
 import { AuthGate } from "./features/auth/AuthGate";
 
 function BottomNav() {
@@ -48,6 +50,8 @@ export default function App() {
         {entriesRoutes}
         {reviewRoutes}
         {orgsRoutes}
+        {rememberRoutes}
+        {prayerRoutes}
       </Routes>
       <BottomNav />
     </AuthGate>

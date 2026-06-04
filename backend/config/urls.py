@@ -11,6 +11,7 @@ from django.urls import include, path, re_path
 from django.views.generic import TemplateView
 
 from apps.accounts.views import me as accounts_me
+from apps.future.urls import flashcard_urlpatterns, prayer_urlpatterns
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -25,6 +26,8 @@ urlpatterns = [
     path("api/property-defs/", include("apps.properties.urls_defs")),
     path("api/properties/", include("apps.properties.urls_values")),
     path("api/review/", include("apps.review.urls")),
+    path("api/flashcards/", include(flashcard_urlpatterns)),
+    path("api/prayer/", include(prayer_urlpatterns)),
     path("api/proposed-persons/", include("apps.extraction.urls")),
     path("api/auth/me/", accounts_me, name="auth-me"),
 

@@ -61,10 +61,15 @@ Both off by default so a fresh Railway deploy boots without any secrets configur
 - **v0.4** — Design system iteration: tokens (warm cream + sage/coral/lime palette, Source Serif Pro + Inter), Home page, restyled People list and Add Entry as paper-card. Placeholder illustration slots.
 - **v0.3** — ProposedPerson workflow (AI proposes new Person records for un-tagged people), Review Console third tab "Proposed People", audit history via `django-simple-history`, extraction prompt v2 with uncertainty discipline + plural-pronoun expansion + standardized property names, `approximate_birth_year` PropertyDef with automatic supersession when `Person.birthday` is set.
 
+## Shipped (practice)
+
+- **Remember** — Spaced-repetition flashcards for approved properties (`/remember`). Deck auto-builds from Review-approved facts; tap-to-reveal session with Again / Got it / Easy.
+- **Pray** — Per-person prayer cadence and peaceful session UI (`/pray`, `/pray/settings`).
+
 ## Planned
 
-- **Phase 2** — Spaced repetition for properties
-- **Phase 3** — Prayer engine
+- **Phase 2+** — Per-property “flag for review” (deck curation beyond auto-sync)
+- **Phase 3+** — Prayer streak ring, richer prompts
 - **Phase 4** — Photos + face-name flashcards
 - **Phase 5** — Private Swift iOS app via TestFlight
 - **Phase 6** — App Store distribution

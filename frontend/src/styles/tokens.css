@@ -13,6 +13,9 @@
   --color-text-muted: #6B6258;
   --color-border: #EAE0D0;
   --color-border-strong: #D8CCB6;
+  /* devotional surfaces — prayer is softer; remember uses success accent */
+  --color-prayer-muted: #8A9E9A;
+  --color-remember-accent: var(--color-success);
 
   /* typography */
   --font-serif: "Source Serif Pro", "Iowan Old Style", Georgia, serif;
