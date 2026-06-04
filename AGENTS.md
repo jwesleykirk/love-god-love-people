@@ -30,11 +30,12 @@ Read in this order:
 2. Migrations clean: `manage.py makemigrations` shows nothing pending.
 3. Docs synced if relevant — schema change → update `_docs/architecture.md`; prompt change → update `_docs/prompt-design.md` and bump prompt version.
 4. Commit when Wesley asks (message names the version step if applicable, e.g. `v0.8: …`).
-5. **Deploy** (prefer **Railway MCP** — project is linked to `love-god-love-people` / `web`):
+5. **Deploy** (repo is linked to `love-god-love-people` / `web` via `railway link`):
    - Push: `git push origin main` when Wesley wants it on the remote.
-   - Deploy: use Railway MCP `deploy` (or `redeploy` for a quick rebuild). Poll with `get-logs` until the deployment succeeds.
+   - **Ship code:** `railway-local` → `deploy`, then `get_logs` until SUCCESS.
+   - **Quick rebuild** (no new upload): `railway` → `redeploy`.
    - **CLI fallback** (if MCP unavailable): `railway up --detach` from repo root, then `railway deployment list` / `railway logs --deployment <id>`.
-   - **Debug a failed deploy:** Railway MCP `railway-agent` or `railway agent -p "why did the last deploy fail?"`.
+   - **Debug a failed deploy:** `railway` → `railway-agent` (or `railway agent -p "…"` in terminal).
 6. Smoke-check live: `https://web-production-0bdba.up.railway.app/api/auth/me/` and load the SPA.
 
 ### Railway MCP (one-time setup)
@@ -55,6 +56,27 @@ After editing MCP config:
 5. Confirm in chat: `check-railway-status` or list services for `love-god-love-people`.
 
 If still missing: run `railway mcp install --agent cursor --remote` from the repo, then restart again.
+
+### Which Railway MCP when
+
+Keep **both** enabled. Default to **local for ship/configure**, **remote for diagnose/redeploy**.
+
+| Goal | Server | Tools |
+|------|--------|-------|
+| Deploy current working tree | `railway-local` | `deploy` → `get_logs` → `list_deployments` |
+| Env vars (inspect / set) | `railway-local` | `list_variables`, `set_variables` |
+| Metrics / health | `railway-local` | `environment_status`, `service_metrics`, `http_error_rate` |
+| Redeploy without re-upload | `railway` | `redeploy`, `get_status` |
+| Build failed / crash loop / 502 | `railway` | **`railway-agent`** (pass project + environment IDs) |
+| Logs / list services (overlap) | `railway-local` first | Uses linked project; remote needs explicit IDs |
+
+**Agent prompts that work well:**
+
+- *Deploy `web` from this repo and tail build logs until SUCCESS.*
+- *List env vars for `web` (redact values) — confirm `OPENROUTER_API_KEY` is set.*
+- *Use railway-agent: last `web` deploy failed — find the Nixpacks error and suggest a fix.*
+
+**Rule:** `railway-local` = ship & configure · `railway` = diagnose (`railway-agent`) & redeploy.
 
 ## Quick links
 
