@@ -34,8 +34,8 @@ export function AuthGate({ children }: { children: ReactNode }) {
   if (auth.auth_enabled && !auth.authenticated) {
     return (
       <div className="container">
-        <h1>Love God, Love People</h1>
-        <p>Sign in with Google to continue.</p>
+        <h1>Sign in</h1>
+        <p className="muted">Continue with your Google account.</p>
         <button onClick={login}>Sign in with Google</button>
       </div>
     );
