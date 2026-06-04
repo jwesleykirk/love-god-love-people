@@ -29,9 +29,32 @@ Read in this order:
 1. Tests green: `cd backend && uv run python manage.py test` and `cd frontend && npm run build`.
 2. Migrations clean: `manage.py makemigrations` shows nothing pending.
 3. Docs synced if relevant — schema change → update `_docs/architecture.md`; prompt change → update `_docs/prompt-design.md` and bump prompt version.
-4. Commit with a message that names the version step if applicable ("v0.4: …").
-5. `git push origin main` → `railway up --detach` from repo root → poll `railway deployment list`.
-6. Smoke-check live: `curl /api/auth/me/` and load the SPA.
+4. Commit when Wesley asks (message names the version step if applicable, e.g. `v0.8: …`).
+5. **Deploy** (prefer **Railway MCP** — project is linked to `love-god-love-people` / `web`):
+   - Push: `git push origin main` when Wesley wants it on the remote.
+   - Deploy: use Railway MCP `deploy` (or `redeploy` for a quick rebuild). Poll with `get-logs` until the deployment succeeds.
+   - **CLI fallback** (if MCP unavailable): `railway up --detach` from repo root, then `railway deployment list` / `railway logs --deployment <id>`.
+   - **Debug a failed deploy:** Railway MCP `railway-agent` or `railway agent -p "why did the last deploy fail?"`.
+6. Smoke-check live: `https://web-production-0bdba.up.railway.app/api/auth/me/` and load the SPA.
+
+### Railway MCP (one-time setup)
+
+Configured in **both** `.cursor/mcp.json` (project) and `~/.cursor/mcp.json` (global). Two servers:
+
+| Server | Transport | Auth |
+|--------|-----------|------|
+| `railway` | Remote `https://mcp.railway.com` | OAuth when Cursor prompts |
+| `railway-local` | `railway mcp` (stdio) | Uses existing `railway login` CLI session |
+
+After editing MCP config:
+
+1. **Restart Cursor** (full quit, not reload window).
+2. **Settings → Tools & MCP** — enable both Railway entries if they appear disabled.
+3. **Remote:** click **Connect** / sign in when OAuth opens.
+4. **Local fallback:** if remote never appears, use `railway-local` (requires `railway` on PATH: `/opt/homebrew/bin/railway`).
+5. Confirm in chat: `check-railway-status` or list services for `love-god-love-people`.
+
+If still missing: run `railway mcp install --agent cursor --remote` from the repo, then restart again.
 
 ## Quick links
 

@@ -3,6 +3,13 @@
     "ChatPRD": {
       "command": "npx",
       "args": ["mcp-remote", "https://app.chatprd.ai/mcp"]
+    },
+    "railway": {
+      "url": "https://mcp.railway.com"
+    },
+    "railway-local": {
+      "command": "railway",
+      "args": ["mcp"]
     }
   }
 }
