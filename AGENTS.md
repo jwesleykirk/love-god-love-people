@@ -30,9 +30,9 @@ Read in this order:
 2. Migrations clean: `manage.py makemigrations` shows nothing pending.
 3. Docs synced if relevant — schema change → update `_docs/architecture.md`; prompt change → update `_docs/prompt-design.md` and bump prompt version.
 4. Commit when Wesley asks (message names the version step if applicable, e.g. `v0.8: …`).
-5. **Deploy** (repo is linked to `love-god-love-people` / `web` via `railway link`):
-   - Push: `git push origin main` when Wesley wants it on the remote.
-   - **Ship code:** `railway-local` → `deploy`, then `get_logs` until SUCCESS.
+5. **Deploy** (prototype: **always keep GitHub and Railway in sync** after shippable work on `main`):
+   - Push: `git push origin main` (default yes for prototype — do not wait to be asked).
+   - **Ship code:** `railway-local` → `deploy` (or `railway up --detach` from repo root), then `get_logs` until SUCCESS.
    - **Quick rebuild** (no new upload): `railway` → `redeploy`.
    - **CLI fallback** (if MCP unavailable): `railway up --detach` from repo root, then `railway deployment list` / `railway logs --deployment <id>`.
    - **Debug a failed deploy:** `railway` → `railway-agent` (or `railway agent -p "…"` in terminal).
