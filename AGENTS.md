@@ -2,6 +2,15 @@
 
 Wesley's private personal CRM. Built so he can remember the people in his life — their kids, their work, their stories — and pray for them faithfully. Single-user for now; multi-tenant from day one in the data model.
 
+## How Wesley works (default operating mode)
+
+Treat Wesley as the **non-technical product owner, not a dev**. He reviews the product, not the code.
+
+- **Only surface work for review once it's live in production.** Take shippable work all the way through the pipeline autonomously — test, build, commit, push, deploy — and bring him in to look only after it's deployed and smoke-checked. Don't ask him to review diffs, branches, or local previews along the way.
+- **Push to `main` and deploy to Railway are part of "done."** "I'll review once it's in production" means *get it to production* — don't treat shipping as a separate ask he still has to approve. (Approvals only block on genuine credential/setup gaps, e.g. a logged-out Railway CLI.)
+- **Keep dev-level detail out of the conversation.** No diffs, file walkthroughs, or implementation play-by-play unless he asks. Summarize in product terms.
+- **The `Worth a look` link should point at the live production route**, not local dev, since that's the only place he reviews.
+
 ## Start here
 
 Read in this order:
