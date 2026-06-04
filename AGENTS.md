@@ -13,6 +13,20 @@ Read in this order:
 5. `_docs/prompt-design.md` — when touching `apps/extraction/`
 6. `_docs/data-model-v2.md` — the v0.2 schema design research, kept as historical rationale
 
+## Response format
+
+End **every** reply with these three lines (use the exact labels):
+
+1. **TLDR** — One or two sentences: what changed, what we learned, or what’s blocked.
+2. **What I need from you** — Only real blockers (decision, credential, manual step, explicit approval). If work is done and diligence is covered, write **Nothing**.
+3. **Worth a look** — Subjective things Wesley may want to eyeball (copy, layout, UX judgment calls). Include a **preview link** when one exists; otherwise say there is nothing subjective to review.
+
+**Preview links**
+
+- After UI changes: path on local dev (`http://localhost:5173/…` when the dev server is running) or on [live](https://web-production-0bdba.up.railway.app) after deploy.
+- Backend-only, docs-only, or non-visual work: no preview link — state that explicitly.
+- Do not invent URLs; link only to routes you know exist.
+
 ## Hard rules (restated from CLAUDE.md)
 
 - **No DDL from AI, ever.** Schema-by-discovery uses `PropertyDef` rows.
