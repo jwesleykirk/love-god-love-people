@@ -1,122 +1,67 @@
-# CLAUDE.md — Love God, Love People
+# CLAUDE.md — Love God, Love People v2
 
-You're working in `jwesleykirk/love-god-love-people`, Wesley's private personal CRM. The full product brief lives in ChatPRD (UUID `a1381cd7-b390-49b3-9090-20a615a2084d`) with a synced copy in `BRIEF.md`. Read `BRIEF.md` and `_docs/architecture.md` before non-trivial changes.
+Daily devotional companion. Full brief in ChatPRD doc `60ad2609-bae2-4955-977a-d5473c500a4e` (synced to `BRIEF.md`). Read `BRIEF.md` and `_docs/architecture.md` before non-trivial changes.
 
 ## What this app is
 
-Wesley journals about people in his life. An AI extraction pipeline parses each entry into structured facts:
+Each morning the app compiles one audio prayer guide: fixed liturgy + Focal Point DBR reading + up to 5 scheduled prayer topics (plus all daily topics). Wesley presses play, follows the guide, marks answered prayers, taps Amen.
 
-- **Values** for known property types (e.g., `mother_name = Linda`)
-- **New property types** the AI discovers and proposes (Wesley keeps/renames/merges/archives them in the Review Console)
-- **New Person records** the AI infers from the entry but Wesley didn't tag (e.g., "Alfonso's wife Kimberly" → `ProposedPerson`)
+People, groups, and prayer topics are managed manually. AI generates short narration text (OpenRouter) and ElevenLabs TTS audio. No journal-entry extraction, no EAV property bag, no flashcards.
 
-Wesley reviews everything in the Review Console (three tabs: Pending Values, New Properties, Proposed People). The schema for AI-discoverable facts grows organically; the foundational graph (Person, Organization, AssociationType, etc.) is pre-loaded.
+Single-user (Wesley) for v1; every record carries `owner_id` for future multi-tenancy.
 
-Single-user (Wesley) for v0.1, but every record carries `owner_id` to enable multi-tenancy in Phase 6.
+## Stack
 
-## Stack and key dependencies
-
-- **Backend:** Django 5.2 + Django REST Framework, Postgres
+- **Backend:** Django 5.2 + DRF, Postgres
 - **Frontend:** React 18 + Vite + TypeScript, mobile-first
 - **Auth:** `django-allauth` Google OAuth + email allowlist (`GOOGLE_OAUTH_ALLOWED_EMAILS`)
-- **Background jobs:** `django-q2` with **Postgres broker (no Redis)**
-- **AI:** OpenRouter → Claude Sonnet (slug in `OPENROUTER_MODEL`)
-- **Audit history:** `django-simple-history` on PersonProperty, Person, PropertyDef, PersonAssociation, OrganizationMembership
+- **Background jobs:** `django-q2` with Postgres broker (no Redis)
+- **AI narration:** OpenRouter → Claude Sonnet (`OPENROUTER_MODEL`)
+- **TTS:** ElevenLabs (`ELEVENLABS_VOICE_ID`, `ELEVENLABS_MODEL`)
+- **Audio stitch:** ffmpeg
+- **Storage:** Railway Volume (`RAILWAY_VOLUME_PATH`)
 - **Deploy:** Railway (single service for API + SPA + worker)
 
-## Architecture overview
+## Django apps
 
-Three load-bearing patterns. All documented in detail in `_docs/architecture.md`; this is the orientation.
+- `accounts` — fixture user middleware, OAuth allowlist adapters
+- `people` — Person, Child
+- `groups` — Group, GroupMembership
+- `prayer` — PrayerTopic, PrayerSession, PrayerLog
+- `dbr` — ReadingDay (Focal Point RSS)
+- `guide` — compile pipeline, scheduling, ingest, settings API
 
-1. **EAV property bag.** `PropertyDef` (the definitions) + `PersonProperty` (the values). AI can introduce new property definitions; AI *never* runs DDL. The Review Console is the curation surface.
-2. **First-class graph above the EAV.** `Person`, `Organization` (with n-level `parent_id` self-ref), `OrganizationMembership` (typed join with temporal validity), `AssociationType` (catalog; 21 seeded), `PersonAssociation` (two-row storage per logical edge with `paired_id`).
-3. **Async extraction.** `POST /api/entries/` returns immediately. A Django-Q2 task picks the entry up, calls OpenRouter, writes pending rows to four tables: `PersonProperty` (values), `PropertyDef` (new property proposals), and `ProposedPerson` (new Person proposals). The Review Console reads from all three.
+## Hard rules
 
-**Feature flags (both off by default so a fresh deploy boots without secrets):**
+- **Never run DDL from AI.** Schema is Django migrations only.
+- **No age column.** Age computed from `birthdate` or `birth_year` on Child.
+- **No Redis.** Django-Q2 uses Postgres broker.
+- **Never commit secrets.** Read from env.
+- **Answered topics are never reopened.** Create a new topic if the need recurs.
+- **Compiled session audio rotates after 3 days.** Session and prayer logs are permanent.
+- **5-topic cap** for scheduled (non-daily) topics per session.
+- **DBR source:** `https://feedpress.me/focalpoint-dbr` only. Personal use.
 
-- `ENABLE_AUTH` — off → app runs as fixture user `wesley@local`; on → Google OAuth + allowlist
-- Presence of `OPENROUTER_API_KEY` — empty → extraction task no-ops and logs "skipped: no api key"; set → live AI
+## Feature flags
 
-## Code conventions
-
-- **One Django app per feature.** Each app under `backend/apps/<feature>/` owns its models, migrations, views, urls, serializers, admin, tests.
-- **React features mirror the Django app names.** `frontend/src/features/<feature>/` owns its routes, components, hooks, API client. Same name on both sides.
-- **Tests live next to code.** Each app's `tests.py` (or `tests/`) runs via `manage.py test`.
-- **One prompt version per file.** `apps/extraction/prompts/v{N}.py` with a `VERSION` string and a `build_user_prompt` function. The active version is imported by `tasks.py`. Old versions stay in the tree as reference.
-- **Feature `api.ts` files call through `src/lib/api.ts`** — never `fetch` directly. That's where CSRF tokens and credentials attach.
-- **Each React feature exports `<feature>Routes` from `routes.tsx`.** `App.tsx` imports and spreads them.
-- **Audit history is opt-in click-through.** Profile pages show current state only. UI history view is implemented for PersonProperty; other models capture history server-side but UI is deferred.
-
-## Hard rules (the "don't do" list)
-
-- **Never run DDL from AI.** Schema-by-discovery happens via `PropertyDef` rows. AI never `ALTER TABLE`s anything.
-- **AI never directly creates Person records.** It proposes via `ProposedPerson` and Wesley approves in the Review Console (`Create` action).
-- **Never commit secrets.** Read every credential from env: `DJANGO_SECRET_KEY`, `OPENROUTER_API_KEY`, `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET`, `GOOGLE_OAUTH_ALLOWED_EMAILS`.
-- **Never add Redis.** Django-Q2 uses Postgres as broker by design.
-- **Never put an Age input anywhere.** Birthday only. Age is derived for display. If only `approximate_birth_year` exists, display "~N years old (approximate)".
-- **Plural pronouns always expand to per-referent rows.** "Alfonso and Kimberly love music" → one `loves_music=true` row per person, never a single combined row.
-- **Uncertainty in entry text never produces extracted properties.** "I'm not sure how devout they are" → zero property extraction. The Alfonso Morales paragraph (see `_docs/prompt-design.md`) is the canonical regression test.
-- **Never fan out the data model with one-off columns for AI-discovered facts.** That's what `PropertyDef` is for. Promotion of a stable PropertyDef to a first-class column is a manual developer action with a migration.
-
-## Source-of-truth map
-
-- **Brief** — ChatPRD doc UUID `a1381cd7-b390-49b3-9090-20a615a2084d` (synced to `BRIEF.md`)
-- **Architecture explainer** — `_docs/architecture.md`
-- **Data model rationale** — `_docs/data-model-v2.md` (the v0.2 research + decisions)
-- **Prompt design** — `_docs/prompt-design.md` (versions, rules, Alfonso fixture)
-- **Code conventions / hard rules** — this file
-
-When in doubt, the brief wins. When the brief and a hard rule disagree, surface the conflict.
+- `ENABLE_AUTH` — off → fixture user `wesley@local`
+- `OPENROUTER_API_KEY` — empty → narration template fallback
+- `ELEVENLABS_API_KEY` — empty → TTS skipped, logged
 
 ## Common commands
 
 ```bash
-# Backend
-cd backend
-uv sync
-uv run python manage.py migrate
-uv run python manage.py runserver
-uv run python manage.py qcluster   # async extraction worker; needs OPENROUTER_API_KEY
-uv run python manage.py test
-
-# Frontend
-cd frontend
-npm install
-npm run dev
-npm run build
-
-# Deploy
-git push origin main
-railway up --detach     # from repo root, after `railway link` to the love-god-love-people project
-railway deployment list # poll status
-railway logs --deployment <id>
+cd backend && uv sync && uv run python manage.py migrate && uv run python manage.py runserver
+cd backend && uv run python manage.py qcluster
+cd backend && DJANGO_SETTINGS_MODULE=config.settings.test uv run python manage.py test
+cd frontend && npm run dev && npm run build
+cd backend && uv run python manage.py setup_guide
 ```
 
-## When you're about to ship
+## Design system
 
-- `uv run python manage.py test` is clean (currently 22 tests).
-- `npm run build` is clean.
-- Migrations created for any model changes (`manage.py makemigrations` lists nothing pending).
-- If you changed the extraction prompt: bump the version (new file `apps/extraction/prompts/v{N}.py`), update the import in `tasks.py`, update `_docs/prompt-design.md`, and add a structural test.
-- If you changed the data model: update `_docs/architecture.md` and `_docs/data-model-v2.md` (or supersede the latter with a new doc).
-- If you changed user-facing copy/behavior: consider whether `BRIEF.md` needs a re-sync from ChatPRD.
+See `_docs/design-system.md` and `frontend/src/styles/tokens.css`. Always use CSS variables; headings serif, body sans; pill buttons.
 
+## Navigation (4 tabs)
 
-## Design system (v0.4)
-
-The visual language is documented in [`_docs/design-system.md`](./_docs/design-system.md). Spec: warm cream paper background, white cards with subtle shadow, editorial serif headings (Source Serif Pro), humanist sans body (Inter), sage/coral/lime accent palette, capsule pill buttons.
-
-### Hard rules for the design layer
-
-- **Always read colors from CSS variables** in `frontend/src/styles/tokens.css`. Never hardcode a hex in a component. If you need a new color, propose adding a token first.
-- **Headings are serif (`var(--font-serif)`); body is sans (`var(--font-sans)`).** Don't mix.
-- **Illustrations live in `frontend/public/illustrations/`.** Wesley generates them via Midjourney; the frontend uses styled placeholders until real assets land. Every placeholder location is tagged with the comment `ILLUSTRATION_PLACEHOLDER: <slot>.svg` for grep-ability.
-- **Pill shape is the dominant language.** Buttons, tabs, chips, multiselect — all capsule.
-
-
-## Person Detail + null rendering (v0.8)
-
-- **Person Detail has exactly two tabs:** Profile (everything structured — hero, notes, topic-grouped property cards, associations, memberships) and Entries (journal timeline). No other tabs.
-- **Null/empty PersonProperty values do not render in the UI.** A row is hidden if its `value_text` is empty, whitespace, `null`, `none`, `n/a`, or `—`.
-- **Topic cards hide entirely if they have zero non-null approved values for the person.** Never render an empty topic card.
-- **`PropertyDef.topic` is a soft enum:** `bio | family | work | interests | faith | health | other`. The AI is constrained to those at prompt time (v3); the DB column has no strict `choices`, so new topics can be introduced via the Review console's Rename action.
+Home · People · Prayer · Journal. Settings via gear on Home.

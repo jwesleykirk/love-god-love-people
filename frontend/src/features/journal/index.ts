@@ -1,0 +1,1 @@
+export { journalRoutes } from "./routes";

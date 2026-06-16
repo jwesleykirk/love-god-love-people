@@ -1,34 +1,43 @@
+from django.contrib.auth import get_user_model
 from django.test import TestCase
-from rest_framework.test import APIClient
+
+from .models import Child, Person
 
 
-class PersonCrudTests(TestCase):
+class ChildAgeTests(TestCase):
+    def test_birthdate_age(self):
+        from datetime import date
+
+        child = Child(name="Sam", birthdate=date(2015, 6, 1))
+        from apps.people.utils import child_age_display
+
+        self.assertIn("years old", child_age_display(child, today=date(2026, 6, 16)))
+
+    def test_birth_year_approximate(self):
+        from datetime import date
+
+        child = Child(name="Sam", birth_year=2015)
+        from apps.people.utils import child_age_display
+
+        self.assertTrue(child_age_display(child, today=date(2026, 6, 16)).startswith("~"))
+
+
+class PersonApiTests(TestCase):
     def setUp(self):
-        self.client = APIClient()
-        self.client.get("/api/auth/me/")
+        User = get_user_model()
+        self.user = User.objects.create_user(username="wesley@local", email="wesley@local")
 
-    def test_create_and_list(self):
-        resp = self.client.post(
+    def test_create_person(self):
+        self.client.force_login(self.user)
+        response = self.client.post(
             "/api/people/",
-            {"full_name": "Karie Kirk", "relationship_category": "family"},
-            format="json",
-        )
-        self.assertEqual(resp.status_code, 201, resp.content)
-        listing = self.client.get("/api/people/").json()
-        self.assertEqual(listing["count"], 1)
-
-    def test_create_with_life_stage_and_birthday(self):
-        resp = self.client.post(
-            "/api/people/",
-            {
-                "full_name": "Oliver Kirk",
-                "relationship_category": "family",
-                "life_stage": "toddler",
-                "birthday": "2025-02-25",
+            data={
+                "name": "Eric",
+                "life_stage": "single",
+                "children": [{"name": "Kid", "birth_year": 2020}],
             },
-            format="json",
+            content_type="application/json",
         )
-        self.assertEqual(resp.status_code, 201, resp.content)
-        body = resp.json()
-        self.assertEqual(body["life_stage"], "toddler")
-        self.assertEqual(body["birthday"], "2025-02-25")
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(Person.objects.count(), 1)
+        self.assertEqual(Child.objects.count(), 1)

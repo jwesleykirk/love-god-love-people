@@ -2,10 +2,10 @@
 
 Dev/prod selection is via DJANGO_SETTINGS_MODULE. See manage.py and wsgi.py.
 
-Two feature flags live here:
+Feature flags / optional integrations:
 - ENABLE_AUTH gates Google OAuth. When False, the app runs as a fixture user.
-- The presence of OPENROUTER_API_KEY gates AI extraction. When empty, the
-  async task no-ops.
+- OPENROUTER_API_KEY — empty skips AI narration generation; logs skip.
+- ELEVENLABS_API_KEY — empty skips TTS; logs skip.
 """
 from pathlib import Path
 
@@ -48,7 +48,6 @@ INSTALLED_APPS = [
     # Third-party
     "rest_framework",
     "corsheaders",
-    "simple_history",
     "django_q",
     "allauth",
     "allauth.account",
@@ -58,13 +57,10 @@ INSTALLED_APPS = [
     # Local feature apps
     "apps.accounts",
     "apps.people",
-    "apps.entries",
-    "apps.properties",
-    "apps.extraction",
-    "apps.review",
-    "apps.orgs",
-    "apps.associations",
-    "apps.future",
+    "apps.groups",
+    "apps.prayer",
+    "apps.dbr",
+    "apps.guide",
 ]
 
 SITE_ID = 1
@@ -82,7 +78,6 @@ MIDDLEWARE = [
     # Auto-login as fixture user when ENABLE_AUTH is False. This must run AFTER
     # AuthenticationMiddleware so request.user is available to read/replace.
     "apps.accounts.middleware.FixtureUserMiddleware",
-    "simple_history.middleware.HistoryRequestMiddleware",
     "allauth.account.middleware.AccountMiddleware",
 ]
 
@@ -238,6 +233,19 @@ Q_CLUSTER = {
 
 OPENROUTER_API_KEY = env("OPENROUTER_API_KEY", default="")
 OPENROUTER_MODEL = env("OPENROUTER_MODEL", default="anthropic/claude-sonnet-4.5")
+
+# ---------------------------------------------------------------------------
+# Audio — ElevenLabs TTS + Railway Volume storage
+# ---------------------------------------------------------------------------
+
+ELEVENLABS_API_KEY = env("ELEVENLABS_API_KEY", default="")
+ELEVENLABS_VOICE_ID = env("ELEVENLABS_VOICE_ID", default="TmNe0cCqkZBMwPWOd3RD")
+ELEVENLABS_MODEL = env("ELEVENLABS_MODEL", default="eleven_multilingual_v2")
+RAILWAY_VOLUME_PATH = env("RAILWAY_VOLUME_PATH", default="/data")
+
+# Pacific-time hour for nightly jobs (django-q cron uses server TZ = America/Los_Angeles)
+BUILD_TIME_HOUR = env.int("BUILD_TIME_HOUR", default=3)
+DBR_INGEST_HOUR = env.int("DBR_INGEST_HOUR", default=2)
 
 # ---------------------------------------------------------------------------
 # Logging

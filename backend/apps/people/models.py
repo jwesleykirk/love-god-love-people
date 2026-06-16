@@ -1,33 +1,12 @@
-"""Person — the core record.
-
-v0.2 changes:
-- Drop bridge_student from RelationshipCategory (now expressed via Organization
-  membership, not a flat category).
-- Add neighbor + ministry as categories.
-- Add optional life_stage, birthday, deceased_at.
-"""
 from django.conf import settings
 from django.db import models
-from simple_history.models import HistoricalRecords
-
-
-class RelationshipCategory(models.TextChoices):
-    FAMILY = "family", "Family"
-    FRIEND = "friend", "Friend"
-    WORK = "work", "Work"
-    NEIGHBOR = "neighbor", "Neighbor"
-    MINISTRY = "ministry", "Ministry"
-    OTHER = "other", "Other"
 
 
 class LifeStage(models.TextChoices):
-    INFANT = "infant", "Infant (0–1)"
-    TODDLER = "toddler", "Toddler (1–3)"
-    CHILD = "child", "Child"
-    TEEN = "teen", "Teen"
-    YOUNG_ADULT = "young_adult", "Young adult"
+    STUDENT = "student", "Student"
+    SINGLE = "single", "Single"
+    MARRIED = "married", "Married"
     ADULT = "adult", "Adult"
-    SENIOR = "senior", "Senior"
 
 
 class Person(models.Model):
@@ -36,35 +15,40 @@ class Person(models.Model):
         on_delete=models.CASCADE,
         related_name="people",
     )
-    full_name = models.CharField(max_length=200)
-    preferred_name = models.CharField(max_length=100, blank=True)
-    relationship_category = models.CharField(
-        max_length=32,
-        choices=RelationshipCategory.choices,
-        default=RelationshipCategory.OTHER,
-    )
+    name = models.CharField(max_length=255)
     life_stage = models.CharField(
         max_length=16,
         choices=LifeStage.choices,
-        blank=True,
-        default="",
+        default=LifeStage.ADULT,
     )
-    birthday = models.DateField(null=True, blank=True)
-    deceased_at = models.DateField(null=True, blank=True)
-    notes_markdown = models.TextField(blank=True)
-    archived = models.BooleanField(default=False)
+    career = models.TextField(blank=True, default="")
+    school = models.TextField(blank=True, default="")
+    major = models.TextField(blank=True, default="")
+    partner_name = models.TextField(blank=True, default="")
+    notes = models.TextField(blank=True, default="")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    history = HistoricalRecords()
-
     class Meta:
-        ordering = ["full_name"]
-        indexes = [
-            models.Index(fields=["owner", "archived"]),
-            models.Index(fields=["owner", "relationship_category"]),
-            models.Index(fields=["owner", "life_stage"]),
-        ]
+        ordering = ["name"]
+        indexes = [models.Index(fields=["owner", "name"])]
 
     def __str__(self) -> str:
-        return self.full_name
+        return self.name
+
+
+class Child(models.Model):
+    person = models.ForeignKey(
+        Person,
+        on_delete=models.CASCADE,
+        related_name="children",
+    )
+    name = models.CharField(max_length=255)
+    birthdate = models.DateField(null=True, blank=True)
+    birth_year = models.PositiveIntegerField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self) -> str:
+        return self.name

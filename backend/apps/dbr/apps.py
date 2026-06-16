@@ -1,7 +1,7 @@
 from django.apps import AppConfig
 
 
-class PeopleConfig(AppConfig):
+class DbrConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
-    name = "apps.people"
-    label = "people"
+    name = "apps.dbr"
+    label = "dbr"

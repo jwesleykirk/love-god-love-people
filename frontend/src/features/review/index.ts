@@ -1,1 +1,0 @@
-export { reviewRoutes } from "./routes";

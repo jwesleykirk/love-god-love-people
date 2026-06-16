@@ -1,0 +1,1 @@
+export { prayerRoutes } from "./routes";
