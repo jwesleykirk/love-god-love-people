@@ -2,6 +2,7 @@ from django.urls import path
 
 from .views import (
     BuildNowView,
+    GuideReadinessView,
     RegenerateSegmentsView,
     SessionAudioView,
     SettingsView,
@@ -10,6 +11,7 @@ from .views import (
 )
 
 urlpatterns = [
+    path("readiness/", GuideReadinessView.as_view(), name="guide-readiness"),
     path("today/", TodayGuideView.as_view(), name="guide-today"),
     path("build/", BuildNowView.as_view(), name="guide-build"),
     path("settings/", SettingsView.as_view(), name="guide-settings"),

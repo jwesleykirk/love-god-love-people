@@ -11,7 +11,18 @@ from rest_framework.views import APIView
 from apps.prayer.models import PrayerSession
 from apps.prayer.serializers import PrayerSessionSerializer
 from apps.guide.services.compiler import compile_session_for_owner
+from apps.guide.services.readiness import guide_readiness
 from django_q.tasks import async_task
+
+
+class GuideReadinessView(APIView):
+    authentication_classes = []
+    permission_classes = []
+
+    def get(self, request):
+        payload = guide_readiness()
+        status = 200 if payload["ready"] else 503
+        return Response(payload, status=status)
 
 
 class TodayGuideView(APIView):

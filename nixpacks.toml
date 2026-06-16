@@ -22,4 +22,4 @@ cmds = [
 ]
 
 [start]
-cmd = "cd backend && /root/.local/bin/uv run python manage.py migrate --noinput && /root/.local/bin/uv run python manage.py setup_guide && (/root/.local/bin/uv run python manage.py qcluster &) && /root/.local/bin/uv run gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120"
+cmd = "cd backend && /root/.local/bin/uv run python manage.py migrate --noinput && /root/.local/bin/uv run python manage.py setup_guide && (if [ -n \"$GUIDE_SMOKE_ON_DEPLOY\" ]; then /root/.local/bin/uv run python manage.py smoke_guide; fi) && (/root/.local/bin/uv run python manage.py qcluster &) && /root/.local/bin/uv run gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120"
