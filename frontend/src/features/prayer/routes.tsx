@@ -1,11 +1,13 @@
-import { Navigate, Route } from "react-router-dom";
-import PrayerRoute from "./PrayerRoute";
-import PrayerSessionRoute from "./PrayerSessionRoute";
+import { Route } from "react-router-dom";
+
+import { PrayerListRoute } from "./PrayerListRoute";
+import { PrayerDetailRoute, PrayerFormRoute } from "./PrayerRoutes";
 
 export const prayerRoutes = (
   <>
-    <Route path="/pray" element={<PrayerRoute />} />
-    <Route path="/pray/session" element={<PrayerSessionRoute />} />
-    <Route path="/pray/settings" element={<Navigate to="/pray" replace />} />
+    <Route path="/prayer" element={<PrayerListRoute />} />
+    <Route path="/prayer/new" element={<PrayerFormRoute />} />
+    <Route path="/prayer/:id" element={<PrayerDetailRoute />} />
+    <Route path="/prayer/:id/edit" element={<PrayerFormRoute />} />
   </>
 );
