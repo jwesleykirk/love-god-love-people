@@ -24,6 +24,9 @@ htmlcov/
 # uv
 .uv-cache/
 
+# Local audio volume (RAILWAY_VOLUME_PATH in dev)
+data/
+
 # Django
 *.log
 db.sqlite3
