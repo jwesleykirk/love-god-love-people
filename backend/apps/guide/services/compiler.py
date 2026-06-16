@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+import shutil
 import subprocess
 import tempfile
 from datetime import date, timedelta
@@ -43,7 +44,13 @@ def _run_ffmpeg_concat(manifest: Path, output: Path) -> None:
         raise RuntimeError(result.stderr or result.stdout or "ffmpeg failed")
 
 
-def _ensure_topic_audio(topic: PrayerTopic, log: BuildLogger) -> Path | None:
+def _ensure_ffmpeg(log: BuildLogger) -> None:
+    if not shutil.which("ffmpeg"):
+        log.error("ffmpeg_check", error="ffmpeg not found on PATH")
+        raise RuntimeError("ffmpeg not found on PATH")
+
+
+def _ensure_topic_audio(topic: PrayerTopic, log: BuildLogger) -> Path:
     path = topic_audio_path(topic.id)
     if path.exists():
         log.ok("topic_audio", topic_id=topic.id, path=str(path))
@@ -52,7 +59,7 @@ def _ensure_topic_audio(topic: PrayerTopic, log: BuildLogger) -> Path | None:
         log.ok("topic_audio", topic_id=topic.id, path=topic.audio_file)
         return Path(topic.audio_file)
     log.error("topic_audio", topic_id=topic.id, error="missing audio file")
-    return None
+    raise RuntimeError(f"Missing audio for prayer topic {topic.id}")
 
 
 def compile_session_for_owner(owner, session_date: date | None = None) -> PrayerSession:
@@ -68,6 +75,8 @@ def compile_session_for_owner(owner, session_date: date | None = None) -> Prayer
     session.save(update_fields=["build_status"])
 
     try:
+        _ensure_ffmpeg(log)
+
         reading = (
             ReadingDay.objects.filter(pub_date__date=session_date).first()
             or ReadingDay.objects.order_by("-pub_date").first()
@@ -104,9 +113,7 @@ def compile_session_for_owner(owner, session_date: date | None = None) -> Prayer
             audio_paths.append(p)
 
         for topic in topics:
-            tp = _ensure_topic_audio(topic, log)
-            if tp:
-                audio_paths.append(tp)
+            audio_paths.append(_ensure_topic_audio(topic, log))
 
         output = session_audio_path(session_date)
         with tempfile.NamedTemporaryFile("w", suffix=".txt", delete=False) as mf:

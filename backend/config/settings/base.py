@@ -219,8 +219,8 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 Q_CLUSTER = {
     "name": "lglp",
     "workers": 2,
-    "timeout": 90,
-    "retry": 180,
+    "timeout": 300,
+    "retry": 600,
     "queue_limit": 50,
     "bulk": 10,
     "orm": "default",

@@ -1,4 +1,8 @@
+import logging
+
 from django.apps import AppConfig
+
+logger = logging.getLogger(__name__)
 
 
 class GuideConfig(AppConfig):
@@ -16,4 +20,4 @@ class GuideConfig(AppConfig):
 
             ensure_schedules()
         except Exception:
-            pass
+            logger.exception("Failed to ensure guide schedules on startup")
