@@ -784,3 +784,215 @@ button.prayer-cta:hover {
   letter-spacing: 0.08em;
   font-size: var(--text-caption);
 }
+
+/* -------------------------------------------------------------------------- */
+/* Modern UI refresh overrides                                                */
+/* -------------------------------------------------------------------------- */
+
+html {
+  background:
+    radial-gradient(1200px 600px at 20% -20%, color-mix(in srgb, var(--color-primary) 26%, white) 0%, transparent 55%),
+    radial-gradient(900px 500px at 100% 0%, color-mix(in srgb, var(--color-success) 22%, white) 0%, transparent 60%),
+    var(--color-bg);
+}
+
+body {
+  background: transparent;
+}
+
+a {
+  color: color-mix(in srgb, var(--color-primary-dark) 86%, black 14%);
+}
+
+main.container {
+  padding-bottom: 120px;
+}
+
+.container {
+  max-width: 760px;
+}
+
+input, textarea, select {
+  border: 1px solid color-mix(in srgb, var(--color-border-strong) 75%, var(--color-primary-dark) 25%);
+  border-radius: var(--radius-lg);
+  padding: 12px 14px;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.8) inset;
+}
+
+input:focus, textarea:focus, select:focus {
+  border-color: color-mix(in srgb, var(--color-primary-dark) 76%, black 24%);
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--color-primary) 45%, transparent),
+    0 1px 0 rgba(255, 255, 255, 0.75) inset;
+}
+
+button {
+  border-radius: 14px;
+  padding: 10px 16px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  transition: transform 0.14s ease, box-shadow 0.2s ease, background 0.2s ease;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+}
+
+button:hover {
+  transform: translateY(-1px);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+button.secondary {
+  background: color-mix(in srgb, var(--color-card) 88%, var(--color-primary) 12%);
+}
+
+button.primary-pill,
+button.prayer-cta {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--color-primary) 78%, white 22%) 0%,
+    color-mix(in srgb, var(--color-primary-dark) 74%, white 26%) 100%
+  );
+  color: var(--color-text);
+}
+
+.card {
+  border: 1px solid color-mix(in srgb, var(--color-border) 84%, var(--color-primary) 16%);
+  border-radius: 20px;
+  box-shadow:
+    0 10px 28px rgba(0, 0, 0, 0.06),
+    0 1px 0 rgba(255, 255, 255, 0.9) inset;
+}
+
+.card--paper {
+  border-radius: 24px;
+}
+
+ul.bare > li {
+  margin-bottom: 10px;
+  border-bottom: none;
+  border: 1px solid color-mix(in srgb, var(--color-border) 84%, var(--color-primary) 16%);
+  border-radius: 14px;
+  padding: 12px 14px;
+  background: color-mix(in srgb, var(--color-card) 88%, var(--color-primary) 12%);
+}
+
+ul.bare > li:last-child {
+  margin-bottom: 0;
+}
+
+.tab-row {
+  gap: 10px;
+}
+
+.tab {
+  border: 1px solid color-mix(in srgb, var(--color-border-strong) 75%, var(--color-primary-dark) 25%);
+  background: color-mix(in srgb, var(--color-card) 84%, var(--color-primary) 16%);
+  padding: 8px 14px;
+}
+
+.tab--active {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--color-primary) 74%, white 26%),
+    color-mix(in srgb, var(--color-primary-dark) 72%, white 28%)
+  );
+  color: var(--color-text);
+  border-color: transparent;
+}
+
+.chip-btn {
+  border: 1px solid color-mix(in srgb, var(--color-border-strong) 75%, var(--color-primary-dark) 25%);
+  background: color-mix(in srgb, var(--color-card) 84%, var(--color-primary) 16%);
+  font-weight: 600;
+}
+
+.chip-btn--active {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--color-primary) 74%, white 26%),
+    color-mix(in srgb, var(--color-primary-dark) 72%, white 28%)
+  );
+  border-color: transparent;
+}
+
+nav.bottom-nav {
+  left: 12px;
+  right: 12px;
+  bottom: 10px;
+  border: 1px solid color-mix(in srgb, var(--color-border) 82%, var(--color-primary) 18%);
+  border-radius: 18px;
+  box-shadow:
+    0 16px 38px rgba(0, 0, 0, 0.12),
+    0 1px 0 rgba(255, 255, 255, 0.9) inset;
+  background: color-mix(in srgb, var(--color-card) 80%, var(--color-primary) 20%);
+  backdrop-filter: blur(12px);
+}
+
+nav.bottom-nav a {
+  border-radius: 12px;
+  min-width: 64px;
+}
+
+nav.bottom-nav a.active {
+  color: var(--color-text);
+  background: color-mix(in srgb, var(--color-primary) 55%, white 45%);
+}
+
+nav.bottom-nav .bn-icon {
+  font-size: 1.15rem;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
+}
+
+.topbar-title {
+  margin-bottom: 0;
+}
+
+.icon-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  text-decoration: none;
+  color: var(--color-text);
+  background: color-mix(in srgb, var(--color-card) 86%, var(--color-primary) 14%);
+  border: 1px solid color-mix(in srgb, var(--color-border) 84%, var(--color-primary) 16%);
+}
+
+.icon-link:hover {
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+
+.action-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--color-border) 84%, var(--color-primary) 16%);
+  background: color-mix(in srgb, var(--color-card) 84%, var(--color-primary) 16%);
+  color: var(--color-text);
+  text-decoration: none;
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.action-link:hover {
+  text-decoration: none;
+}
+
+.section-sub {
+  margin-top: -8px;
+  margin-bottom: 10px;
+}

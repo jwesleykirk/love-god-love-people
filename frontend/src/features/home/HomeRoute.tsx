@@ -1,181 +1,172 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { listEntries, type JournalEntry } from "../entries/api";
-import { fetchPrayerQueue } from "../prayer/api";
-import { fetchFlashcardQueue } from "../remember/api";
-import { listPeople, type Person } from "../people/api";
-import { Illustration, IllustrationBanner } from "@/components/Illustration";
-import { useAuth } from "../auth/AuthProvider";
 
-const POLL_MS = 5000;
+import {
+  buildGuideNow,
+  fetchTodayGuide,
+  sessionAmen,
+  sessionTopicAction,
+} from "../api";
+import type { PrayerSession } from "../types";
 
-function greetingFor(date = new Date()): string {
-  const h = date.getHours();
-  if (h < 5) return "Quiet morning";
-  if (h < 12) return "Good morning";
-  if (h < 17) return "Good afternoon";
-  if (h < 21) return "Good evening";
-  return "Late night";
+function isFullSession(s: PrayerSession): s is PrayerSession & { id: number } {
+  return typeof s.id === "number";
 }
 
-function statusPillClass(s: JournalEntry["extraction_status"]) {
-  switch (s) {
-    case "done": return "pill pill--success";
-    case "running": return "pill pill--primary";
-    case "error": return "pill pill--warning";
-    default: return "pill";
-  }
-}
+export function HomeRoute() {
+  const [session, setSession] = useState<PrayerSession | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [building, setBuilding] = useState(false);
+  const [reviewMode, setReviewMode] = useState(false);
+  const [noteTopicId, setNoteTopicId] = useState<number | null>(null);
+  const [noteText, setNoteText] = useState("");
+  const audioRef = useRef<HTMLAudioElement>(null);
 
-function statusLabel(s: JournalEntry["extraction_status"]) {
-  switch (s) {
-    case "pending": return "queued";
-    case "running": return "AI…";
-    case "done": return "done";
-    case "skipped": return "AI off";
-    case "error": return "error";
-    default: return s;
-  }
-}
-
-export default function HomeRoute() {
-  const { auth } = useAuth();
-  const [entries, setEntries] = useState<JournalEntry[]>([]);
-  const [people, setPeople] = useState<Person[]>([]);
-  const [dueFlashcards, setDueFlashcards] = useState(0);
-  const [duePrayers, setDuePrayers] = useState(0);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    let timer: ReturnType<typeof setTimeout> | null = null;
-
-    async function pull() {
-      try {
-        const [ee, pp, flash, prayer] = await Promise.all([
-          listEntries(),
-          listPeople(),
-          fetchFlashcardQueue().catch(() => null),
-          fetchPrayerQueue().catch(() => null),
-        ]);
-        if (cancelled) return;
-        setEntries(ee.results.slice(0, 5));
-        setPeople(pp.results);
-        setDueFlashcards(flash?.stats.due_count ?? 0);
-        setDuePrayers(prayer?.stats.due_count ?? 0);
-        setError(null);
-        if (ee.results.some((e) => e.extraction_status === "pending" || e.extraction_status === "running")) {
-          timer = setTimeout(pull, POLL_MS);
-        }
-      } catch (e) {
-        if (!cancelled) setError(e instanceof Error ? e.message : "failed");
-      }
+  const load = async () => {
+    setLoading(true);
+    try {
+      const data = await fetchTodayGuide();
+      setSession(data);
+    } finally {
+      setLoading(false);
     }
-    void pull();
-    return () => { cancelled = true; if (timer) clearTimeout(timer); };
-  }, []);
+  };
 
-  const peopleById = new Map(people.map((p) => [p.id, p]));
-  const firstName = auth?.user?.first_name || "friend";
+  useEffect(() => { void load(); }, []);
+
+  const handleBuild = async () => {
+    setBuilding(true);
+    try {
+      const data = await buildGuideNow();
+      setSession(data);
+    } finally {
+      setBuilding(false);
+    }
+  };
+
+  const handleAudioEnded = () => setReviewMode(true);
+
+  const handleAmen = async () => {
+    if (!session?.id) return;
+    await sessionAmen(session.id);
+    setReviewMode(false);
+    void load();
+  };
+
+  const handleTopicAction = async (
+    topicId: number,
+    action: "answered" | "record_answer",
+  ) => {
+    if (!session?.id) return;
+    await sessionTopicAction(session.id, topicId, action, noteText || undefined);
+    setNoteTopicId(null);
+    setNoteText("");
+    void load();
+  };
+
+  if (loading) {
+    return (
+      <main className="container">
+        <p className="muted">Loading today's guide…</p>
+      </main>
+    );
+  }
+
+  const failed = session?.build_status === "failed";
+  const pending = !session?.id || session.build_status === "pending";
+  const ready = session?.build_status === "ready" && session.audio_url;
 
   return (
-    <main className="container">
-      <h1 className="hero-title">{greetingFor()}, {firstName}.</h1>
-      <p className="hero-sub">Who is on your heart today?</p>
+    <main className="container stack-lg">
+      <div className="topbar">
+        <h1 className="hero-title topbar-title">Today's Guide</h1>
+        <Link to="/settings" className="icon-link" aria-label="Settings">⚙</Link>
+      </div>
+      <p className="muted section-sub">One tap to start your morning prayer rhythm.</p>
 
-      <Link to="/pray" className="card card--paper home-prayer-altar">
-        <div className="row" style={{ gap: "var(--space-4)", alignItems: "center" }}>
-          {/* ILLUSTRATION_PLACEHOLDER: prayer-hero.svg */}
-          <Illustration slot="prayer-hero" size="lg" label="prayer" />
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <h2 className="home-prayer-altar-title">Prayer time</h2>
-            <p className="muted" style={{ margin: 0 }}>
-              {duePrayers > 0
-                ? `${duePrayers} ${duePrayers === 1 ? "person" : "people"} · guided session`
-                : "Begin a quiet guided prayer"}
-            </p>
-          </div>
+      {failed && (
+        <div className="card card--inset">
+          <p>Today's guide couldn't be prepared — tap to build now.</p>
+          <button onClick={() => void handleBuild()} disabled={building}>
+            {building ? "Building…" : "Build now"}
+          </button>
         </div>
-        <span className="home-prayer-altar-cta">Begin →</span>
-      </Link>
-
-      {dueFlashcards > 0 && (
-        <Link to="/remember" className="home-remember-link muted">
-          Remember · {dueFlashcards} {dueFlashcards === 1 ? "card" : "cards"} due today →
-        </Link>
       )}
 
-      {/* Recent journaling */}
-      <div className="card">
-        <div className="row row--between" style={{ marginBottom: "var(--space-3)" }}>
-          <h3 style={{ margin: 0 }}>Recent journaling</h3>
-          <Link to="/entries/new">+ Entry</Link>
+      {pending && !failed && (
+        <div className="card card--paper stack">
+          <p className="muted">{session?.detail ?? "Your morning guide will appear here once built."}</p>
+          <button className="primary-pill" onClick={() => void handleBuild()} disabled={building}>
+            {building ? "Building…" : "Build now"}
+          </button>
         </div>
-        {error && <p className="muted" style={{ color: "var(--color-warning)" }}>{error}</p>}
-        {entries.length === 0 ? (
-          <>
-            {/* ILLUSTRATION_PLACEHOLDER: journal-hero.svg */}
-            <IllustrationBanner slot="journal-hero" label="No entries yet. Write your first." />
-            <div style={{ marginTop: "var(--space-4)", display: "flex", justifyContent: "center" }}>
-              <Link to="/entries/new"><button className="primary-pill">Write your first entry</button></Link>
-            </div>
-          </>
-        ) : (
-          <ul className="bare">
-            {entries.map((e) => {
-              const tagged = e.person_id_list
-                .map((id) => peopleById.get(id)?.preferred_name || peopleById.get(id)?.full_name)
-                .filter(Boolean)
-                .join(", ");
-              return (
-                <li key={e.id}>
-                  <div className="row row--between" style={{ marginBottom: 4 }}>
-                    <div className="muted" style={{ fontSize: "var(--text-caption)" }}>
-                      {new Date(e.created_at).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}
-                      {tagged && <> · {tagged}</>}
-                    </div>
-                    <span className={statusPillClass(e.extraction_status)}>{statusLabel(e.extraction_status)}</span>
-                  </div>
-                  <div style={{ overflow: "hidden", textOverflow: "ellipsis", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>
-                    {e.content_markdown}
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </div>
+      )}
 
-      {/* People glance */}
-      <div className="card">
-        <div className="row row--between" style={{ marginBottom: "var(--space-3)" }}>
-          <h3 style={{ margin: 0 }}>People</h3>
-          <Link to="/people">View all →</Link>
+      {ready && !reviewMode && (
+        <div className="card card--paper stack devotional-screen">
+          <p className="muted">{session.session_date}</p>
+          <audio
+            ref={audioRef}
+            controls
+            src={session.audio_url!}
+            onEnded={handleAudioEnded}
+            style={{ width: "100%" }}
+          />
+          <button className="secondary" onClick={() => setReviewMode(true)}>
+            Skip to review
+          </button>
         </div>
-        {people.length === 0 ? (
-          <p className="muted">No people yet. <Link to="/people/new">Add your first</Link>.</p>
-        ) : (
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--space-2)" }}>
-            {people.slice(0, 8).map((p) => (
-              <Link
-                to={`/people/${p.id}`}
-                key={p.id}
-                style={{ display: "inline-flex", alignItems: "center", gap: "var(--space-2)", textDecoration: "none" }}
-              >
-                {/* ILLUSTRATION_PLACEHOLDER: {category}.svg */}
-                <Illustration slot={p.relationship_category} label={p.relationship_category[0].toUpperCase()} />
-                <span style={{ color: "var(--color-text)", fontSize: "var(--text-label)" }}>
-                  {p.preferred_name || p.full_name}
-                </span>
-              </Link>
+      )}
+
+      {reviewMode && session && isFullSession(session) && (
+        <div className="stack-lg">
+          <h2>Post-Session Review</h2>
+          <p className="muted section-sub">Mark answered prayers and record what God did.</p>
+          <ul className="bare prayer-prompt-list">
+            {(session.logs ?? []).map((log) => (
+              <li key={log.id} className="card card--inset stack">
+                <p>{log.topic_narration}</p>
+                <div className="row row--wrap">
+                  <button
+                    className="secondary"
+                    onClick={() => void handleTopicAction(log.topic_id, "answered")}
+                  >
+                    Answered
+                  </button>
+                  <button
+                    className="secondary"
+                    onClick={() => setNoteTopicId(log.topic_id)}
+                  >
+                    Record answer
+                  </button>
+                  <button className="secondary">Continue</button>
+                </div>
+                {noteTopicId === log.topic_id && (
+                  <div className="stack">
+                    <label>How did God answer this?</label>
+                    <textarea
+                      value={noteText}
+                      onChange={(e) => setNoteText(e.target.value)}
+                    />
+                    <button
+                      onClick={() => void handleTopicAction(log.topic_id, "record_answer")}
+                    >
+                      Save note
+                    </button>
+                  </div>
+                )}
+              </li>
             ))}
-          </div>
-        )}
-      </div>
+          </ul>
+          <button className="prayer-cta" onClick={() => void handleAmen()}>
+            Amen
+          </button>
+        </div>
+      )}
 
-      <div style={{ marginTop: "var(--space-6)", display: "flex", justifyContent: "center" }}>
-        <Link to="/entries/new"><button>+ Add entry</button></Link>
-      </div>
+      {session?.completed_at && !reviewMode && (
+        <p className="muted">Session completed. See you tomorrow.</p>
+      )}
     </main>
   );
 }

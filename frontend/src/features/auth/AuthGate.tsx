@@ -29,7 +29,8 @@ export function AuthGate({ children }: { children: ReactNode }) {
     );
   }
 
-  if (!auth) return null;
+  // Safety fallback: never render a blank screen if auth payload is missing.
+  if (!auth) return <>{children}</>;
 
   if (auth.auth_enabled && !auth.authenticated) {
     return (

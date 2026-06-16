@@ -1,12 +1,9 @@
-import { NavLink, Route, Routes, useLocation } from "react-router-dom";
+import { Navigate, NavLink, Route, Routes, useLocation } from "react-router-dom";
 
-import { peopleRoutes } from "./features/people/routes";
-import { entriesRoutes } from "./features/entries/routes";
-import { reviewRoutes } from "./features/review/routes";
-import { orgsRoutes } from "./features/orgs/routes";
 import { homeRoutes } from "./features/home/routes";
-import { rememberRoutes } from "./features/remember/routes";
+import { peopleRoutes } from "./features/people/routes";
 import { prayerRoutes } from "./features/prayer/routes";
+import { journalRoutes } from "./features/journal/routes";
 import { AuthGate } from "./features/auth/AuthGate";
 
 function BottomNav() {
@@ -18,24 +15,20 @@ function BottomNav() {
   return (
     <nav className="bottom-nav" aria-label="Primary">
       <NavLink to="/" className={is("/") ? "active" : ""} end>
-        <span className="bn-icon">◯</span>
+        <span className="bn-icon">🏠</span>
         <span>Home</span>
       </NavLink>
-      <NavLink to="/people" className={is("/people") ? "active" : ""}>
-        <span className="bn-icon">◐</span>
+      <NavLink to="/people" className={is("/people") || is("/groups") ? "active" : ""}>
+        <span className="bn-icon">👥</span>
         <span>People</span>
       </NavLink>
-      <NavLink to="/entries/new" className={location.pathname === "/entries/new" ? "active" : ""}>
-        <span className="bn-icon">+</span>
-        <span>Entry</span>
-      </NavLink>
-      <NavLink to="/pray" className={is("/pray") ? "active" : ""}>
+      <NavLink to="/prayer" className={is("/prayer") ? "active" : ""}>
         <span className="bn-icon">🙏</span>
-        <span>Pray</span>
+        <span>Prayer</span>
       </NavLink>
-      <NavLink to="/review" className={is("/review") ? "active" : ""}>
-        <span className="bn-icon">✓</span>
-        <span>Review</span>
+      <NavLink to="/journal" className={is("/journal") ? "active" : ""}>
+        <span className="bn-icon">📝</span>
+        <span>Journal</span>
       </NavLink>
     </nav>
   );
@@ -47,11 +40,9 @@ export default function App() {
       <Routes>
         {homeRoutes}
         {peopleRoutes}
-        {entriesRoutes}
-        {reviewRoutes}
-        {orgsRoutes}
-        {rememberRoutes}
         {prayerRoutes}
+        {journalRoutes}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <BottomNav />
     </AuthGate>
