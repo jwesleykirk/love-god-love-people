@@ -1,8 +1,30 @@
-from django.test import TestCase
+from unittest.mock import patch
+
+from django.test import TestCase, override_settings
+from rest_framework.test import APIClient
 
 from apps.guide.services.scheduler import select_topics_for_session
 from apps.guide.services.segments import PAUSE_AFTER_SEGMENT_KEYS, POST_DBR_KEYS
 from apps.prayer.models import PrayerTopic, TargetFrequency
+
+
+class GuideReadinessOpsTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+
+    def test_post_compile_requires_ops_token(self):
+        response = self.client.post("/api/guide/readiness/")
+        self.assertEqual(response.status_code, 403)
+
+    @override_settings(GUIDE_OPS_TOKEN="test-token")
+    @patch("apps.guide.tasks.compile_daily_guides")
+    def test_post_compile_accepts_valid_ops_token(self, compile_daily_guides):
+        response = self.client.post(
+            "/api/guide/readiness/",
+            HTTP_X_GUIDE_OPS_TOKEN="test-token",
+        )
+        compile_daily_guides.assert_called_once()
+        self.assertIn(response.status_code, {200, 503})
 
 
 class SegmentPauseTests(TestCase):

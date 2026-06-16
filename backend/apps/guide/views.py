@@ -24,6 +24,18 @@ class GuideReadinessView(APIView):
         status = 200 if payload["ready"] else 503
         return Response(payload, status=status)
 
+    def post(self, request):
+        token = getattr(settings, "GUIDE_OPS_TOKEN", "")
+        if not token or request.headers.get("X-Guide-Ops-Token") != token:
+            return Response({"detail": "Forbidden"}, status=403)
+
+        from apps.guide.tasks import compile_daily_guides
+
+        compile_daily_guides()
+        payload = guide_readiness()
+        status = 200 if payload["ready"] else 503
+        return Response(payload, status=status)
+
 
 class TodayGuideView(APIView):
     def get(self, request):
