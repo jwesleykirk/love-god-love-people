@@ -53,3 +53,12 @@ POST_DBR_KEYS = [
     "confess_mercy",
     "pray_what_matters",
 ]
+
+# Prompts that invite reflection — compile inserts a pause after each.
+PAUSE_AFTER_SEGMENT_KEYS = frozenset(
+    {
+        "goodness_truth_beauty",
+        "reading_challenges",
+        "help_today",
+    }
+)

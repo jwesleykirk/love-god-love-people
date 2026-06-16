@@ -20,7 +20,8 @@ from apps.guide.services.paths import (
     topic_audio_path,
 )
 from apps.guide.services.scheduler import select_topics_for_session
-from apps.guide.services.segments import POST_DBR_KEYS, PRE_DBR_KEYS
+from apps.guide.services.segments import PAUSE_AFTER_SEGMENT_KEYS, POST_DBR_KEYS, PRE_DBR_KEYS
+from apps.guide.services.silence import DEFAULT_PAUSE_SECONDS, ensure_silence
 
 logger = logging.getLogger(__name__)
 
@@ -48,6 +49,10 @@ def _ensure_ffmpeg(log: BuildLogger) -> None:
     if not shutil.which("ffmpeg"):
         log.error("ffmpeg_check", error="ffmpeg not found on PATH")
         raise RuntimeError("ffmpeg not found on PATH")
+
+
+def _append_pause(audio_paths: list[Path], seconds: int = DEFAULT_PAUSE_SECONDS) -> None:
+    audio_paths.append(ensure_silence(seconds))
 
 
 def _ensure_topic_audio(topic: PrayerTopic, log: BuildLogger) -> Path:
@@ -102,6 +107,8 @@ def compile_session_for_owner(owner, session_date: date | None = None) -> Prayer
                 log.error("segment_check", key=key, error="missing segment")
                 raise RuntimeError(f"Missing segment: {key}")
             audio_paths.append(p)
+            if key in PAUSE_AFTER_SEGMENT_KEYS:
+                _append_pause(audio_paths)
 
         audio_paths.append(Path(dbr_path))
 
@@ -111,9 +118,13 @@ def compile_session_for_owner(owner, session_date: date | None = None) -> Prayer
                 log.error("segment_check", key=key, error="missing segment")
                 raise RuntimeError(f"Missing segment: {key}")
             audio_paths.append(p)
+            if key in PAUSE_AFTER_SEGMENT_KEYS:
+                _append_pause(audio_paths)
 
-        for topic in topics:
+        for index, topic in enumerate(topics):
             audio_paths.append(_ensure_topic_audio(topic, log))
+            if index < len(topics) - 1:
+                _append_pause(audio_paths)
 
         output = session_audio_path(session_date)
         with tempfile.NamedTemporaryFile("w", suffix=".txt", delete=False) as mf:

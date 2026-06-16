@@ -19,11 +19,13 @@ Single Railway service: Django API + React SPA (WhiteNoise) + Django-Q2 worker. 
 
 ```
 {RAILWAY_VOLUME_PATH}/
-  segments/     # fixed liturgy (generated once)
+  segments/     # fixed liturgy (generated once) + cached silence clips
   dbr/          # RSS enclosure MP3s
   topics/       # per-topic narration MP3s
   sessions/     # compiled daily guides (rotated after 3 days)
 ```
+
+Compile inserts 10-second silence after reflective liturgy prompts and between prayer topics.
 
 ## Background jobs (django-q2)
 

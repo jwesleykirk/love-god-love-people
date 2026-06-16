@@ -1,7 +1,20 @@
 from django.test import TestCase
 
 from apps.guide.services.scheduler import select_topics_for_session
+from apps.guide.services.segments import PAUSE_AFTER_SEGMENT_KEYS, POST_DBR_KEYS
 from apps.prayer.models import PrayerTopic, TargetFrequency
+
+
+class SegmentPauseTests(TestCase):
+    def test_reflection_prompts_pause_after_playback(self):
+        reflection_keys = {
+            "goodness_truth_beauty",
+            "reading_challenges",
+            "help_today",
+        }
+        self.assertEqual(PAUSE_AFTER_SEGMENT_KEYS, reflection_keys)
+        for key in PAUSE_AFTER_SEGMENT_KEYS:
+            self.assertIn(key, POST_DBR_KEYS)
 
 
 class SchedulerTests(TestCase):
