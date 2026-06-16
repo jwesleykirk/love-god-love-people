@@ -25,11 +25,6 @@ class GuideReadinessView(APIView):
         return Response(payload, status=status)
 
     def post(self, request):
-        import os
-
-        if not os.environ.get("GUIDE_SMOKE_ON_DEPLOY"):
-            return Response({"detail": "Smoke test disabled."}, status=404)
-
         from apps.guide.tasks import compile_daily_guides, dbr_ingest_task
 
         count = dbr_ingest_task()
