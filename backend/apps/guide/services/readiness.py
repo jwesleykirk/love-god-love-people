@@ -5,6 +5,7 @@ import shutil
 from datetime import timedelta
 from pathlib import Path
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 
@@ -117,4 +118,5 @@ def guide_readiness() -> dict:
         "latest_session": session_info,
         "today": today.isoformat(),
         "tomorrow": tomorrow.isoformat(),
+        "ops_token_configured": bool(getattr(settings, "GUIDE_OPS_TOKEN", "")),
     }

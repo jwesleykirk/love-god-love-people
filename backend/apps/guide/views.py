@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 from django.conf import settings
@@ -25,8 +26,13 @@ class GuideReadinessView(APIView):
         return Response(payload, status=status)
 
     def post(self, request):
-        token = getattr(settings, "GUIDE_OPS_TOKEN", "")
-        if not token or request.headers.get("X-Guide-Ops-Token") != token:
+        token = getattr(settings, "GUIDE_OPS_TOKEN", "") or os.environ.get("GUIDE_OPS_TOKEN", "")
+        provided = (
+            request.headers.get("X-Guide-Ops-Token")
+            or request.META.get("HTTP_X_GUIDE_OPS_TOKEN")
+            or ""
+        ).strip()
+        if not token or provided != token:
             return Response({"detail": "Forbidden"}, status=403)
 
         from apps.guide.tasks import compile_daily_guides
