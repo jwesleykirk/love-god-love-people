@@ -55,6 +55,16 @@ export type PrayerTopic = {
   created_at?: string;
 };
 
+export type PrayerImportSuggestion = {
+  client_id: string;
+  name: string;
+  kind: "person" | "group" | "general";
+  topic_text: string;
+  target_frequency: TargetFrequency;
+  person_id?: number | null;
+  group_id?: number | null;
+};
+
 export type PrayerLog = {
   id: number;
   topic_id: number;

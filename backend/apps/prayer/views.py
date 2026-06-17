@@ -1,15 +1,22 @@
 from django.utils import timezone
+from django.db import transaction
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.guide.services.openrouter import OpenRouterError
+
 from .models import PrayerLog, PrayerSession, PrayerTopic
 from .serializers import (
+    PrayerImportCommitSerializer,
+    PrayerImportPreviewSerializer,
+    PrayerImportSuggestionSerializer,
     PrayerSessionListSerializer,
     PrayerSessionSerializer,
     PrayerTopicSerializer,
 )
+from .services.importer import generate_import_suggestions
 
 
 class PrayerTopicViewSet(viewsets.ModelViewSet):
@@ -72,6 +79,47 @@ class PrayerSessionViewSet(viewsets.ReadOnlyModelViewSet):
         if self.action == "list":
             return PrayerSessionListSerializer
         return PrayerSessionSerializer
+
+
+class PrayerImportPreviewView(APIView):
+    def post(self, request):
+        serializer = PrayerImportPreviewSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            suggestions = generate_import_suggestions(request.user, serializer.validated_data["text"])
+        except OpenRouterError as exc:
+            return Response(
+                {"detail": str(exc) or "OpenRouter is not configured."},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+        except ValueError as exc:
+            return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(
+            {
+                "suggestions": PrayerImportSuggestionSerializer(suggestions, many=True).data,
+            }
+        )
+
+
+class PrayerImportCommitView(APIView):
+    def post(self, request):
+        serializer = PrayerImportCommitSerializer(data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+
+        created: list[PrayerTopic] = []
+        with transaction.atomic():
+            for topic_data in serializer.validated_data["topics"]:
+                topic = PrayerTopic.objects.create(owner=request.user, **topic_data)
+                created.append(topic)
+
+        from django_q.tasks import async_task
+
+        for topic in created:
+            async_task("apps.guide.tasks.generate_topic_narration", topic.id)
+
+        output = PrayerTopicSerializer(created, many=True, context={"request": request})
+        return Response({"topics": output.data}, status=status.HTTP_201_CREATED)
 
 
 class SessionTopicActionView(APIView):

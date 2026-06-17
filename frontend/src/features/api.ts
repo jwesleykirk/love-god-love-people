@@ -1,4 +1,4 @@
-import type { Person, Group, PrayerTopic, PrayerSession, GuideSettings } from "./types";
+import type { Person, Group, PrayerImportSuggestion, PrayerTopic, PrayerSession, GuideSettings } from "./types";
 import { apiFetch } from "@/lib/api";
 
 type Paginated<T> = { results: T[] };
@@ -93,6 +93,27 @@ export function saveTopic(data: Partial<PrayerTopic>, id?: number) {
     return apiFetch<PrayerTopic>(`/api/prayer/topics/${id}/`, { method: "PATCH", body: data });
   }
   return apiFetch<PrayerTopic>("/api/prayer/topics/", { method: "POST", body: data });
+}
+
+export function previewPrayerImport(text: string) {
+  return apiFetch<{ suggestions: PrayerImportSuggestion[] }>("/api/prayer/import/preview/", {
+    method: "POST",
+    body: { text },
+  });
+}
+
+export function commitPrayerImport(
+  topics: Array<{
+    topic_text: string;
+    target_frequency: PrayerTopic["target_frequency"];
+    person_id?: number | null;
+    group_id?: number | null;
+  }>,
+) {
+  return apiFetch<{ topics: PrayerTopic[] }>("/api/prayer/import/commit/", {
+    method: "POST",
+    body: { topics },
+  });
 }
 
 export function fetchTopicHistory(id: number) {

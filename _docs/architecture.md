@@ -50,7 +50,7 @@ On-demand: topic narration generation (on create/edit), manual build from Home.
 
 ## Feature-flagged integrations
 
-- `OPENROUTER_API_KEY` — AI narration text
+- `OPENROUTER_API_KEY` — AI narration text and prayer-list import parsing
 - `ELEVENLABS_API_KEY` — TTS for segments and topics
 
 Both skip gracefully with log lines when empty.

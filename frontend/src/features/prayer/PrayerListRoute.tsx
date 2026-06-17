@@ -58,6 +58,13 @@ export function PrayerListRoute() {
         </Link>
       </header>
 
+      <Link to="/prayer/import" className="card card--inset" style={{ display: "block" }}>
+        <div className="grouped-list-title">Import a prayer list</div>
+        <p className="muted" style={{ marginBottom: 0 }}>
+          Paste names and requests, review AI suggestions, then choose what to save.
+        </p>
+      </Link>
+
       <div className="glass-search">
         <IconSearch />
         <input

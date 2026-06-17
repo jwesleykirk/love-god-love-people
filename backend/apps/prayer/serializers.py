@@ -8,6 +8,71 @@ from apps.people.serializers import PersonListSerializer
 from .models import PrayerLog, PrayerSession, PrayerTopic
 
 
+class PrayerImportPreviewSerializer(serializers.Serializer):
+    text = serializers.CharField(trim_whitespace=True, allow_blank=False, max_length=12000)
+
+
+class PrayerImportSuggestionSerializer(serializers.Serializer):
+    client_id = serializers.CharField(read_only=True)
+    name = serializers.CharField(read_only=True)
+    kind = serializers.ChoiceField(choices=["person", "group", "general"], read_only=True)
+    topic_text = serializers.CharField(read_only=True)
+    target_frequency = serializers.ChoiceField(choices=["daily", "weekly", "monthly"], read_only=True)
+    person_id = serializers.IntegerField(read_only=True, allow_null=True)
+    group_id = serializers.IntegerField(read_only=True, allow_null=True)
+
+
+class PrayerImportTopicSerializer(serializers.Serializer):
+    topic_text = serializers.CharField(trim_whitespace=True, allow_blank=False)
+    target_frequency = serializers.ChoiceField(
+        choices=["daily", "weekly", "monthly"],
+        default="weekly",
+    )
+    person_id = serializers.PrimaryKeyRelatedField(
+        queryset=Person.objects.none(),
+        required=False,
+        allow_null=True,
+        source="person",
+    )
+    group_id = serializers.PrimaryKeyRelatedField(
+        queryset=Group.objects.none(),
+        required=False,
+        allow_null=True,
+        source="group",
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        request = self.context.get("request")
+        if request and request.user.is_authenticated:
+            self.fields["person_id"].queryset = Person.objects.filter(owner=request.user)
+            self.fields["group_id"].queryset = Group.objects.filter(owner=request.user)
+
+    def validate(self, attrs):
+        person = attrs.get("person")
+        group = attrs.get("group")
+        if person and group:
+            raise serializers.ValidationError("Attach to either a person or a group, not both.")
+        return attrs
+
+
+class PrayerImportCommitSerializer(serializers.Serializer):
+    topics = serializers.ListField(
+        child=serializers.DictField(),
+        allow_empty=False,
+        max_length=50,
+    )
+
+    def validate_topics(self, value):
+        serializer = PrayerImportTopicSerializer(
+            data=value,
+            many=True,
+            context=self.context,
+        )
+        serializer.is_valid(raise_exception=True)
+        return serializer.validated_data
+
+
 class PrayerTopicSerializer(serializers.ModelSerializer):
     person = PersonListSerializer(read_only=True)
     group = GroupListSerializer(read_only=True)
