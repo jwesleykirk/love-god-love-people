@@ -5,7 +5,8 @@ import logging
 
 from apps.guide.services.elevenlabs import ElevenLabsError, synthesize, tts_available
 from apps.guide.services.openrouter import OpenRouterError, generate_narration, openrouter_available
-from apps.guide.services.paths import segment_path, topic_audio_path
+from apps.guide.services.paths import dbr_intro_path, segment_path, topic_audio_path
+from apps.guide.services.dbr_intro import build_dbr_introduction
 from apps.guide.services.segments import LITURGY_SEGMENTS
 from apps.guide.services.scheduler import assign_initial_schedule
 from apps.prayer.models import PrayerTopic
@@ -25,6 +26,29 @@ def generate_liturgy_segments(force: bool = False) -> int:
         synthesize(segment.narration, path)
         count += 1
     return count
+
+
+def generate_dbr_intro_audio(
+    guid: str,
+    *,
+    ot_reference: str = "",
+    nt_reference: str = "",
+    force: bool = False,
+) -> tuple[str, str]:
+    """Return (intro_narration_text, intro_audio_path). Audio path may be empty if TTS skipped."""
+    narration = build_dbr_introduction(ot_reference=ot_reference, nt_reference=nt_reference)
+    path = dbr_intro_path(guid)
+    if not tts_available():
+        logger.info("DBR intro TTS skipped for %s: no ElevenLabs key", guid)
+        return narration, ""
+    if path.exists() and not force:
+        return narration, str(path)
+    try:
+        synthesize(narration, path)
+        return narration, str(path)
+    except ElevenLabsError:
+        logger.info("DBR intro TTS failed for %s", guid)
+        return narration, ""
 
 
 def _subject_for_topic(topic: PrayerTopic) -> str:

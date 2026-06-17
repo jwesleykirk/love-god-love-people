@@ -15,17 +15,23 @@ from apps.dbr.models import ReadingDay
 from apps.prayer.models import BuildStatus, PrayerLog, PrayerSession, PrayerTopic
 from apps.guide.services.background_music import mix_background_music
 from apps.guide.services.build_log import BuildLogger
+from apps.guide.services.narration import generate_dbr_intro_audio
 from apps.guide.services.paths import (
+    dbr_intro_path,
     segment_path,
     session_audio_path,
     topic_audio_path,
 )
 from apps.guide.services.scheduler import select_topics_for_session
 from apps.guide.services.segments import (
+    DBR_AFTER_PAUSE_SECONDS,
+    DBR_INTRO_PAUSE_SECONDS,
+    DOXOLOGY_PAUSE_SECONDS,
     PAUSE_AFTER_SEGMENT,
     POST_DBR_KEYS,
     PRE_DBR_KEYS,
     TOPIC_PAUSE_SECONDS,
+    TOPIC_TO_DOXOLOGY_PAUSE_SECONDS,
 )
 from apps.guide.services.silence import ensure_silence
 
@@ -72,6 +78,44 @@ def _append_segment_audio(audio_paths: list[Path], keys: list[str], log: BuildLo
             _append_pause(audio_paths, PAUSE_AFTER_SEGMENT[key])
 
 
+def _ensure_dbr_intro_audio(reading: ReadingDay, log: BuildLogger) -> Path:
+    path = dbr_intro_path(reading.guid)
+    if path.exists():
+        log.ok("dbr_intro", path=str(path), guid=reading.guid)
+        return path
+
+    _, intro_path = generate_dbr_intro_audio(
+        reading.guid,
+        ot_reference=reading.ot_reference,
+        nt_reference=reading.nt_reference,
+    )
+    if intro_path and Path(intro_path).exists():
+        log.ok("dbr_intro", path=intro_path, guid=reading.guid, generated=True)
+        return Path(intro_path)
+
+    log.error("dbr_intro", error="missing intro audio", guid=reading.guid)
+    raise RuntimeError("Missing DBR introduction audio")
+
+
+def _append_dbr_block(audio_paths: list[Path], reading: ReadingDay, log: BuildLogger) -> None:
+    audio_paths.append(_ensure_dbr_intro_audio(reading, log))
+    _append_pause(audio_paths, DBR_INTRO_PAUSE_SECONDS)
+
+    dbr_path = reading.audio_cached_path
+    if not dbr_path or not Path(dbr_path).exists():
+        log.error("dbr_check", error="audio_cached_path missing", guid=reading.guid)
+        raise RuntimeError("DBR audio not cached")
+    log.ok("dbr_check", path=dbr_path, guid=reading.guid)
+    audio_paths.append(Path(dbr_path))
+
+    word_path = segment_path("word_of_the_lord")
+    if not word_path.exists():
+        log.error("segment_check", key="word_of_the_lord", error="missing segment")
+        raise RuntimeError("Missing segment: word_of_the_lord")
+    audio_paths.append(word_path)
+    _append_pause(audio_paths, DBR_AFTER_PAUSE_SECONDS)
+
+
 def _ensure_topic_audio(topic: PrayerTopic, log: BuildLogger) -> Path:
     path = topic_audio_path(topic.id)
     if path.exists():
@@ -107,25 +151,28 @@ def compile_session_for_owner(owner, session_date: date | None = None) -> Prayer
             log.error("dbr_check", error="no reading_day row")
             raise RuntimeError("No reading day available")
 
-        dbr_path = reading.audio_cached_path
-        if not dbr_path or not Path(dbr_path).exists():
-            log.error("dbr_check", error="audio_cached_path missing", guid=reading.guid)
-            raise RuntimeError("DBR audio not cached")
-
-        log.ok("dbr_check", path=dbr_path, guid=reading.guid)
-
         topics = select_topics_for_session(owner, session_date)
         log.ok("schedule", topic_count=len(topics), topic_ids=[t.id for t in topics])
 
         audio_paths: list[Path] = []
         _append_segment_audio(audio_paths, PRE_DBR_KEYS, log)
-        audio_paths.append(Path(dbr_path))
+        _append_dbr_block(audio_paths, reading, log)
         _append_segment_audio(audio_paths, POST_DBR_KEYS, log)
 
         for index, topic in enumerate(topics):
             audio_paths.append(_ensure_topic_audio(topic, log))
             if index < len(topics) - 1:
                 _append_pause(audio_paths, TOPIC_PAUSE_SECONDS)
+
+        if topics:
+            _append_pause(audio_paths, TOPIC_TO_DOXOLOGY_PAUSE_SECONDS)
+
+        doxology_path = segment_path("doxology")
+        if not doxology_path.exists():
+            log.error("segment_check", key="doxology", error="missing segment")
+            raise RuntimeError("Missing segment: doxology")
+        audio_paths.append(doxology_path)
+        _append_pause(audio_paths, DOXOLOGY_PAUSE_SECONDS)
 
         output = session_audio_path(session_date)
         with tempfile.NamedTemporaryFile("w", suffix=".txt", delete=False) as manifest_file:

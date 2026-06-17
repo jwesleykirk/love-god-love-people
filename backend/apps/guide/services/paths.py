@@ -51,3 +51,8 @@ def session_audio_path(session_date) -> Path:
 def dbr_audio_path(guid: str) -> Path:
     safe = "".join(c if c.isalnum() or c in "-_" else "_" for c in guid)[:120]
     return dbr_dir() / f"{safe}.mp3"
+
+
+def dbr_intro_path(guid: str) -> Path:
+    safe = "".join(c if c.isalnum() or c in "-_" else "_" for c in guid)[:120]
+    return dbr_dir() / f"{safe}_intro.mp3"

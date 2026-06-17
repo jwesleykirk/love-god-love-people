@@ -13,7 +13,7 @@ from apps.dbr.models import ReadingDay
 from apps.prayer.models import BuildStatus, PrayerSession, PrayerTopic
 from apps.prayer.serializers import PrayerSessionSerializer
 from apps.guide.services.compiler import compile_session_for_owner
-from apps.guide.services.paths import segment_path
+from apps.guide.services.paths import dbr_intro_path, segment_path
 from apps.guide.services.readiness import guide_readiness
 from apps.guide.services.silence import ensure_silence, silence_path
 from django_q.tasks import async_task
@@ -95,6 +95,15 @@ class SegmentAudioView(APIView):
         return _audio_response(segment_path(key))
 
 
+class DbrIntroAudioView(APIView):
+    def get(self, request, reading_id: int):
+        reading = ReadingDay.objects.get(pk=reading_id)
+        path = dbr_intro_path(reading.guid)
+        if not path.exists():
+            raise Http404
+        return _audio_response(path)
+
+
 class DbrAudioView(APIView):
     def get(self, request, reading_id: int):
         reading = ReadingDay.objects.get(pk=reading_id)
@@ -124,7 +133,7 @@ class SilenceAudioView(APIView):
 
 class VoicePreviewView(APIView):
     def get(self, request):
-        path = segment_path("opening_dbr_header")
+        path = segment_path("opening_attentive")
         if not path.exists():
             return Response({"detail": "Segments not generated yet."}, status=404)
         return FileResponse(path.open("rb"), content_type="audio/mpeg")

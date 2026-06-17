@@ -17,13 +17,8 @@ LITURGY_SEGMENTS: list[LiturgySegment] = [
         "Begin",
         (
             "As you begin, pray that God would keep you attentive and thankful "
-            "in this prayer time. Remember that Christ is coming soon."
+            "during this time of prayer."
         ),
-    ),
-    LiturgySegment(
-        "opening_dbr_header",
-        "Daily Bible Reading",
-        "Daily Bible Reading.",
     ),
     LiturgySegment(
         "love_him_reading",
@@ -39,6 +34,11 @@ LITURGY_SEGMENTS: list[LiturgySegment] = [
         "love_others",
         "Love others",
         "Ask God to help you love others more through his word.",
+    ),
+    LiturgySegment(
+        "word_of_the_lord",
+        "The Word of the Lord",
+        "The Word of the Lord.",
     ),
     LiturgySegment(
         "reflect_god",
@@ -58,7 +58,7 @@ LITURGY_SEGMENTS: list[LiturgySegment] = [
     LiturgySegment(
         "confess_shortcomings",
         "Confession",
-        "Confess your shortcomings to God.",
+        "Confess your sins to God.",
     ),
     LiturgySegment(
         "ask_mercy",
@@ -70,14 +70,21 @@ LITURGY_SEGMENTS: list[LiturgySegment] = [
         "Intercession",
         "Ask God to help you pray for what really matters to him.",
     ),
+    LiturgySegment(
+        "doxology",
+        "Doxology",
+        (
+            "Glory be to the Father, and to the Son, and to the Holy Spirit; "
+            "as it was in the beginning, is now, and ever shall be, world without end. Amen."
+        ),
+    ),
 ]
 
 LITURGY_BY_KEY: dict[str, LiturgySegment] = {segment.key: segment for segment in LITURGY_SEGMENTS}
 
-# Order for compile: segments before DBR, DBR, segments after DBR, topics
+# Order for compile: segments before DBR, DBR block, segments after DBR, topics, doxology
 PRE_DBR_KEYS = [
     "opening_attentive",
-    "opening_dbr_header",
     "love_him_reading",
     "understand_obey",
     "love_others",
@@ -90,17 +97,24 @@ POST_DBR_KEYS = [
     "ask_mercy",
     "pray_what_matters",
 ]
+FIXED_LITURGY_KEYS = PRE_DBR_KEYS + ["word_of_the_lord"] + POST_DBR_KEYS + ["doxology"]
 
 # Seconds of silence after each segment (only keys listed here get a pause).
 PAUSE_AFTER_SEGMENT: dict[str, int] = {
-    "opening_attentive": 10,
-    "love_him_reading": 15,
-    "understand_obey": 15,
-    "love_others": 15,
-    "reflect_god": 15,
-    "confess_shortcomings": 20,
-    "ask_mercy": 10,
-    "pray_what_matters": 10,
+    "opening_attentive": 30,
+    "love_him_reading": 30,
+    "understand_obey": 30,
+    "love_others": 30,
+    "reflect_god": 60,
+    "reading_challenges": 30,
+    "help_today": 30,
+    "confess_shortcomings": 30,
+    "ask_mercy": 30,
+    "pray_what_matters": 30,
 }
 
-TOPIC_PAUSE_SECONDS = 20
+DBR_INTRO_PAUSE_SECONDS = 10
+DBR_AFTER_PAUSE_SECONDS = 10
+TOPIC_PAUSE_SECONDS = 30
+TOPIC_TO_DOXOLOGY_PAUSE_SECONDS = 30
+DOXOLOGY_PAUSE_SECONDS = 10

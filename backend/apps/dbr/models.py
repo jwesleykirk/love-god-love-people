@@ -20,6 +20,7 @@ class ReadingDay(models.Model):
     esv_nt_text = models.TextField(blank=True, default="")
     raw_content_html = models.TextField(blank=True, default="")
     audio_cached_path = models.TextField(blank=True, default="")
+    intro_narration_text = models.TextField(blank=True, default="")
     fetched_at = models.DateTimeField(auto_now=True)
 
     class Meta:

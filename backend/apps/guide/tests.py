@@ -4,8 +4,13 @@ from django.test import TestCase, override_settings
 from django.utils import timezone
 from rest_framework.test import APIClient
 
+from apps.guide.services.dbr_intro import (
+    book_from_feed_reference,
+    build_dbr_introduction,
+    dbr_display_title,
+)
 from apps.guide.services.scheduler import select_topics_for_session
-from apps.guide.services.segments import POST_DBR_KEYS, PRE_DBR_KEYS
+from apps.guide.services.segments import FIXED_LITURGY_KEYS, POST_DBR_KEYS, PRE_DBR_KEYS
 from apps.prayer.models import PrayerTopic, TargetFrequency
 
 
@@ -48,24 +53,96 @@ class RegenerateTodayTests(TestCase):
         )
 
 
+class DbrIntroTests(TestCase):
+    def test_book_from_feed_reference_strips_testament_prefix(self):
+        self.assertEqual(book_from_feed_reference("Old Testament: Nehemiah 4-6"), "Nehemiah")
+        self.assertEqual(book_from_feed_reference("New Testament: Acts 2:14-47"), "Acts")
+
+    def test_bcp_intro_for_nehemiah_and_acts(self):
+        intro = build_dbr_introduction(
+            ot_reference="Old Testament: Nehemiah 4-6",
+            nt_reference="New Testament: Acts 2:14-47",
+        )
+        self.assertEqual(
+            intro,
+            "A reading from the Book of Nehemiah, and from the Acts of the Apostles.",
+        )
+
+    def test_bcp_intro_for_prophet_and_gospel(self):
+        intro = build_dbr_introduction(
+            ot_reference="Old Testament: Isaiah 55",
+            nt_reference="New Testament: Matthew 5:1-12",
+        )
+        self.assertEqual(
+            intro,
+            "A reading from the Book of the Prophet Isaiah, and from the holy Gospel according to Matthew.",
+        )
+
+    def test_single_psalm_uses_specific_psalm(self):
+        intro = build_dbr_introduction(
+            ot_reference="Old Testament: Psalm 23",
+            nt_reference="New Testament: John 3:16",
+        )
+        self.assertIn("Psalm 23", intro)
+        self.assertIn("holy Gospel according to John", intro)
+
+    def test_psalm_range_uses_plural(self):
+        intro = build_dbr_introduction(
+            ot_reference="Old Testament: Psalms 23-25",
+            nt_reference="",
+        )
+        self.assertEqual(intro, "A reading from the Psalms.")
+
+    def test_missing_metadata_falls_back(self):
+        self.assertEqual(build_dbr_introduction(), "A reading from Holy Scripture.")
+
+    def test_dbr_display_title_includes_date_and_refs(self):
+        from apps.dbr.models import ReadingDay
+
+        reading = ReadingDay(
+            title="June 17",
+            passage_reference="Nehemiah 4-6 & Acts 2:14-47",
+        )
+        self.assertEqual(
+            dbr_display_title(reading),
+            "June 17 — Nehemiah 4-6, Acts 2:14-47",
+        )
+
+
 class SegmentPauseTests(TestCase):
     def test_pause_map_matches_liturgy_spec(self):
         expected = {
-            "opening_attentive": 10,
-            "love_him_reading": 15,
-            "understand_obey": 15,
-            "love_others": 15,
-            "reflect_god": 15,
-            "confess_shortcomings": 20,
-            "ask_mercy": 10,
-            "pray_what_matters": 10,
+            "opening_attentive": 30,
+            "love_him_reading": 30,
+            "understand_obey": 30,
+            "love_others": 30,
+            "reflect_god": 60,
+            "reading_challenges": 30,
+            "help_today": 30,
+            "confess_shortcomings": 30,
+            "ask_mercy": 30,
+            "pray_what_matters": 30,
         }
-        from apps.guide.services.segments import PAUSE_AFTER_SEGMENT, TOPIC_PAUSE_SECONDS
+        from apps.guide.services.segments import (
+            DBR_AFTER_PAUSE_SECONDS,
+            DBR_INTRO_PAUSE_SECONDS,
+            DOXOLOGY_PAUSE_SECONDS,
+            PAUSE_AFTER_SEGMENT,
+            TOPIC_PAUSE_SECONDS,
+            TOPIC_TO_DOXOLOGY_PAUSE_SECONDS,
+        )
 
         self.assertEqual(PAUSE_AFTER_SEGMENT, expected)
-        self.assertEqual(TOPIC_PAUSE_SECONDS, 20)
+        self.assertEqual(TOPIC_PAUSE_SECONDS, 30)
+        self.assertEqual(TOPIC_TO_DOXOLOGY_PAUSE_SECONDS, 30)
+        self.assertEqual(DBR_INTRO_PAUSE_SECONDS, 10)
+        self.assertEqual(DBR_AFTER_PAUSE_SECONDS, 10)
+        self.assertEqual(DOXOLOGY_PAUSE_SECONDS, 10)
         for key in PAUSE_AFTER_SEGMENT:
             self.assertIn(key, PRE_DBR_KEYS + POST_DBR_KEYS)
+        self.assertIn("word_of_the_lord", FIXED_LITURGY_KEYS)
+        self.assertIn("doxology", FIXED_LITURGY_KEYS)
+        self.assertNotIn("opening_dbr_header", FIXED_LITURGY_KEYS)
 
 
 class SchedulerTests(TestCase):
@@ -105,12 +182,18 @@ class PlaylistBuilderTests(TestCase):
             title="Genesis 1",
             pub_date=timezone.now(),
             audio_cached_path="",
+            ot_reference="Old Testament: Genesis 1",
+            nt_reference="New Testament: Matthew 1",
+            intro_narration_text="A reading from the Book of Genesis, and from the holy Gospel according to Matthew.",
         )
         self.log = BuildLogger()
 
+    @patch("apps.guide.services.playlist.dbr_intro_path")
     @patch("apps.guide.services.playlist.segment_path")
     @patch("apps.guide.services.playlist.ensure_silence")
-    def test_playlist_orders_segments_dbr_topics(self, ensure_silence, segment_path_mock):
+    def test_playlist_orders_segments_dbr_topics_doxology(
+        self, ensure_silence, segment_path_mock, dbr_intro_path_mock
+    ):
         from pathlib import Path
 
         from apps.guide.services.playlist import build_session_playlist
@@ -118,6 +201,9 @@ class PlaylistBuilderTests(TestCase):
 
         segment_path_mock.return_value = Path(self.tmpdir) / "segment.mp3"
         (segment_path_mock.return_value).write_bytes(b"mp3")
+        intro_file = Path(self.tmpdir) / "intro.mp3"
+        intro_file.write_bytes(b"mp3")
+        dbr_intro_path_mock.return_value = intro_file
         ensure_silence.return_value = Path(self.tmpdir) / "silence.mp3"
 
         dbr_file = Path(self.tmpdir) / "dbr.mp3"
@@ -137,9 +223,12 @@ class PlaylistBuilderTests(TestCase):
 
         kinds = [c["kind"] for c in playlist]
         self.assertEqual(kinds[0], "segment")
+        self.assertIn("dbr_intro", kinds)
         self.assertIn("dbr", kinds)
         self.assertIn("topic", kinds)
         self.assertIn("pause", kinds)
+        self.assertEqual(kinds[-2], "segment")
+        self.assertEqual(playlist[-2]["segment_key"], "doxology")
         topic_clips = [c for c in playlist if c["kind"] == "topic"]
         self.assertEqual(topic_clips[0]["topic_id"], topic.id)
         self.assertTrue(all(c["audio_url"].startswith("/api/guide/audio/") for c in playlist))
@@ -164,12 +253,16 @@ class SessionCompilerTests(TestCase):
             title="Genesis 1",
             pub_date=timezone.now(),
             audio_cached_path=self.reading_audio,
+            ot_reference="Old Testament: Genesis 1",
+            nt_reference="New Testament: Matthew 1",
+            intro_narration_text="A reading from the Book of Genesis, and from the holy Gospel according to Matthew.",
         )
 
     @patch("apps.guide.services.compiler.mix_background_music")
     @patch("apps.guide.services.compiler._run_ffmpeg_concat")
     @patch("apps.guide.services.compiler.session_audio_path")
     @patch("apps.guide.services.compiler.ensure_silence")
+    @patch("apps.guide.services.compiler.dbr_intro_path")
     @patch("apps.guide.services.compiler.segment_path")
     @patch("apps.guide.services.compiler.topic_audio_path")
     @patch("apps.guide.services.compiler.shutil.which")
@@ -178,6 +271,7 @@ class SessionCompilerTests(TestCase):
         which,
         topic_audio_path_mock,
         segment_path_mock,
+        dbr_intro_path_mock,
         ensure_silence,
         session_audio_path_mock,
         run_ffmpeg_concat,
@@ -192,6 +286,9 @@ class SessionCompilerTests(TestCase):
         segment_file = Path(self.tmpdir) / "segment.mp3"
         segment_file.write_bytes(b"mp3")
         segment_path_mock.return_value = segment_file
+        intro_file = Path(self.tmpdir) / "intro.mp3"
+        intro_file.write_bytes(b"mp3")
+        dbr_intro_path_mock.return_value = intro_file
         silence_file = Path(self.tmpdir) / "silence.mp3"
         silence_file.write_bytes(b"mp3")
         ensure_silence.return_value = silence_file

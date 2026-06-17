@@ -5,11 +5,13 @@ import logging
 import re
 import xml.etree.ElementTree as ET
 from html import unescape
+from pathlib import Path
 
 import requests
 
 from apps.dbr.models import ReadingDay
 from apps.guide.services.paths import dbr_audio_path
+from apps.guide.services.narration import generate_dbr_intro_audio
 
 logger = logging.getLogger(__name__)
 
@@ -140,10 +142,22 @@ def ingest_feed() -> int:
             except Exception as exc:
                 logger.exception("DBR audio download failed for %s: %s", data["guid"], exc)
 
+        intro_text, intro_audio_path = generate_dbr_intro_audio(
+            data["guid"],
+            ot_reference=data["ot_reference"],
+            nt_reference=data["nt_reference"],
+        )
+
         ReadingDay.objects.update_or_create(
             guid=data["guid"],
-            defaults={**data, "audio_cached_path": audio_path},
+            defaults={
+                **data,
+                "audio_cached_path": audio_path,
+                "intro_narration_text": intro_text,
+            },
         )
+        if intro_audio_path and not Path(intro_audio_path).exists():
+            logger.warning("DBR intro audio missing after generation for %s", data["guid"])
         count += 1
     logger.info("DBR ingest complete: %s items", count)
     return count

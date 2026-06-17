@@ -5,13 +5,19 @@ from pathlib import Path
 
 from apps.dbr.models import ReadingDay
 from apps.guide.services.build_log import BuildLogger
-from apps.guide.services.paths import segment_path, topic_audio_path
+from apps.guide.services.dbr_intro import build_dbr_introduction_for_reading, dbr_display_title
+from apps.guide.services.narration import generate_dbr_intro_audio
+from apps.guide.services.paths import dbr_intro_path, segment_path, topic_audio_path
 from apps.guide.services.segments import (
+    DBR_AFTER_PAUSE_SECONDS,
+    DBR_INTRO_PAUSE_SECONDS,
+    DOXOLOGY_PAUSE_SECONDS,
     LITURGY_BY_KEY,
     PAUSE_AFTER_SEGMENT,
     POST_DBR_KEYS,
     PRE_DBR_KEYS,
     TOPIC_PAUSE_SECONDS,
+    TOPIC_TO_DOXOLOGY_PAUSE_SECONDS,
 )
 from apps.guide.services.silence import ensure_silence
 from apps.prayer.models import PrayerTopic
@@ -41,11 +47,22 @@ def _pause_clip(seconds: int, index: int) -> dict:
     }
 
 
+def _dbr_intro_clip(reading: ReadingDay) -> dict:
+    return {
+        "id": f"dbr-intro-{reading.pk}",
+        "kind": "dbr_intro",
+        "title": "Passage introduction",
+        "subtitle": build_dbr_introduction_for_reading(reading),
+        "audio_url": f"/api/guide/audio/dbr-intro/{reading.pk}/",
+        "reading_id": reading.pk,
+    }
+
+
 def _dbr_clip(reading: ReadingDay) -> dict:
     return {
         "id": f"dbr-{reading.pk}",
         "kind": "dbr",
-        "title": reading.title or "Daily Bible Reading",
+        "title": dbr_display_title(reading),
         "subtitle": "Scripture",
         "audio_url": f"/api/guide/audio/dbr/{reading.pk}/",
         "reading_id": reading.pk,
@@ -69,6 +86,23 @@ def _ensure_segment(key: str, log: BuildLogger) -> None:
         log.error("segment_check", key=key, error="missing segment")
         raise RuntimeError(f"Missing segment: {key}")
     log.ok("segment_check", key=key, path=str(path))
+
+
+def _ensure_dbr_intro(reading: ReadingDay, log: BuildLogger) -> None:
+    path = dbr_intro_path(reading.guid)
+    if path.exists():
+        log.ok("dbr_intro", path=str(path), guid=reading.guid)
+        return
+    _, intro_path = generate_dbr_intro_audio(
+        reading.guid,
+        ot_reference=reading.ot_reference,
+        nt_reference=reading.nt_reference,
+    )
+    if intro_path and Path(intro_path).exists():
+        log.ok("dbr_intro", path=intro_path, guid=reading.guid, generated=True)
+        return
+    log.error("dbr_intro", error="missing intro audio", guid=reading.guid)
+    raise RuntimeError("Missing DBR introduction audio")
 
 
 def _ensure_topic_audio(topic: PrayerTopic, log: BuildLogger) -> None:
@@ -95,6 +129,28 @@ def _append_segment_clips(clips: list[dict], keys: list[str], log: BuildLogger, 
     return pause_index
 
 
+def _append_dbr_clips(clips: list[dict], reading: ReadingDay, log: BuildLogger, pause_index: int) -> int:
+    _ensure_dbr_intro(reading, log)
+    clips.append(_dbr_intro_clip(reading))
+    ensure_silence(DBR_INTRO_PAUSE_SECONDS)
+    clips.append(_pause_clip(DBR_INTRO_PAUSE_SECONDS, pause_index))
+    pause_index += 1
+
+    dbr_path = reading.audio_cached_path
+    if not dbr_path or not Path(dbr_path).exists():
+        log.error("dbr_check", error="audio_cached_path missing", guid=reading.guid)
+        raise RuntimeError("DBR audio not cached")
+    log.ok("dbr_check", path=dbr_path, guid=reading.guid)
+    clips.append(_dbr_clip(reading))
+
+    _ensure_segment("word_of_the_lord", log)
+    clips.append(_segment_clip("word_of_the_lord"))
+    ensure_silence(DBR_AFTER_PAUSE_SECONDS)
+    clips.append(_pause_clip(DBR_AFTER_PAUSE_SECONDS, pause_index))
+    pause_index += 1
+    return pause_index
+
+
 def build_session_playlist(
     reading: ReadingDay,
     topics: list[PrayerTopic],
@@ -105,14 +161,7 @@ def build_session_playlist(
     pause_index = 0
 
     pause_index = _append_segment_clips(clips, PRE_DBR_KEYS, log, pause_index)
-
-    dbr_path = reading.audio_cached_path
-    if not dbr_path or not Path(dbr_path).exists():
-        log.error("dbr_check", error="audio_cached_path missing", guid=reading.guid)
-        raise RuntimeError("DBR audio not cached")
-    log.ok("dbr_check", path=dbr_path, guid=reading.guid)
-    clips.append(_dbr_clip(reading))
-
+    pause_index = _append_dbr_clips(clips, reading, log, pause_index)
     pause_index = _append_segment_clips(clips, POST_DBR_KEYS, log, pause_index)
 
     for index, topic in enumerate(topics):
@@ -122,6 +171,16 @@ def build_session_playlist(
             ensure_silence(TOPIC_PAUSE_SECONDS)
             clips.append(_pause_clip(TOPIC_PAUSE_SECONDS, pause_index))
             pause_index += 1
+
+    if topics:
+        ensure_silence(TOPIC_TO_DOXOLOGY_PAUSE_SECONDS)
+        clips.append(_pause_clip(TOPIC_TO_DOXOLOGY_PAUSE_SECONDS, pause_index))
+        pause_index += 1
+
+    _ensure_segment("doxology", log)
+    clips.append(_segment_clip("doxology"))
+    ensure_silence(DOXOLOGY_PAUSE_SECONDS)
+    clips.append(_pause_clip(DOXOLOGY_PAUSE_SECONDS, pause_index))
 
     log.ok("playlist", clip_count=len(clips))
     return clips

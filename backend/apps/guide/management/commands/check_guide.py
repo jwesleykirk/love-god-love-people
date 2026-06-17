@@ -13,7 +13,7 @@ from django.utils import timezone
 from apps.dbr.models import ReadingDay
 from apps.guide.services.paths import segment_path, volume_root
 from apps.guide.services.scheduler import select_topics_for_session
-from apps.guide.services.segments import POST_DBR_KEYS, PRE_DBR_KEYS
+from apps.guide.services.segments import FIXED_LITURGY_KEYS
 from apps.guide.services.elevenlabs import tts_available
 from apps.guide.services.openrouter import openrouter_available
 
@@ -39,7 +39,7 @@ class Command(BaseCommand):
         check("ffmpeg on PATH", bool(shutil.which("ffmpeg")))
         check("volume writable", _volume_writable())
 
-        segment_keys = PRE_DBR_KEYS + POST_DBR_KEYS
+        segment_keys = FIXED_LITURGY_KEYS
         missing_segments = [k for k in segment_keys if not segment_path(k).exists()]
         check(
             "liturgy segments",
