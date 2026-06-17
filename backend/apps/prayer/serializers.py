@@ -104,13 +104,18 @@ class PrayerSessionSerializer(serializers.ModelSerializer):
             "completed_at",
             "audio_file",
             "audio_url",
+            "playlist",
             "build_status",
             "build_log",
             "logs",
         ]
 
     def get_audio_url(self, obj: PrayerSession) -> str | None:
-        if obj.audio_file and obj.build_status == "ready":
+        if obj.build_status != "ready":
+            return None
+        if obj.playlist:
+            return None
+        if obj.audio_file:
             return f"/api/guide/sessions/{obj.id}/audio/"
         return None
 

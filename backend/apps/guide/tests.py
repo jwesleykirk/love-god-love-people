@@ -1,6 +1,7 @@
 from unittest.mock import patch
 
 from django.test import TestCase, override_settings
+from django.utils import timezone
 from rest_framework.test import APIClient
 
 from apps.guide.services.scheduler import select_topics_for_session
@@ -57,3 +58,60 @@ class SchedulerTests(TestCase):
         )
         selected = select_topics_for_session(self.user, date.today())
         self.assertIn(t, selected)
+
+
+class PlaylistBuilderTests(TestCase):
+    def setUp(self):
+        import tempfile
+
+        from django.contrib.auth import get_user_model
+
+        from apps.dbr.models import ReadingDay
+        from apps.guide.services.build_log import BuildLogger
+
+        User = get_user_model()
+        self.user = User.objects.create_user(username="wesley@local", email="wesley@local")
+        self.tmpdir = tempfile.mkdtemp()
+        self.reading = ReadingDay.objects.create(
+            guid="test-guid",
+            title="Genesis 1",
+            pub_date=timezone.now(),
+            audio_cached_path="",
+        )
+        self.log = BuildLogger()
+
+    @patch("apps.guide.services.playlist.segment_path")
+    @patch("apps.guide.services.playlist.ensure_silence")
+    def test_playlist_orders_segments_dbr_topics(self, ensure_silence, segment_path_mock):
+        from pathlib import Path
+
+        from apps.guide.services.playlist import build_session_playlist
+        from apps.prayer.models import PrayerTopic
+
+        segment_path_mock.return_value = Path(self.tmpdir) / "segment.mp3"
+        (segment_path_mock.return_value).write_bytes(b"mp3")
+        ensure_silence.return_value = Path(self.tmpdir) / "silence.mp3"
+
+        dbr_file = Path(self.tmpdir) / "dbr.mp3"
+        dbr_file.write_bytes(b"mp3")
+        self.reading.audio_cached_path = str(dbr_file)
+        self.reading.save()
+
+        topic = PrayerTopic.objects.create(
+            owner=self.user,
+            topic_text="health",
+            narration_text="Pray for health",
+            audio_file=str(Path(self.tmpdir) / "topic.mp3"),
+        )
+        Path(topic.audio_file).write_bytes(b"mp3")
+
+        playlist = build_session_playlist(self.reading, [topic], self.log)
+
+        kinds = [c["kind"] for c in playlist]
+        self.assertEqual(kinds[0], "segment")
+        self.assertIn("dbr", kinds)
+        self.assertIn("topic", kinds)
+        self.assertIn("pause", kinds)
+        topic_clips = [c for c in playlist if c["kind"] == "topic"]
+        self.assertEqual(topic_clips[0]["topic_id"], topic.id)
+        self.assertTrue(all(c["audio_url"].startswith("/api/guide/audio/") for c in playlist))

@@ -14,7 +14,7 @@ class Command(BaseCommand):
         if session:
             self.stdout.write(
                 f"Latest session {session.session_date}: {session.build_status} "
-                f"(audio={'yes' if session.audio_file else 'no'})"
+                f"(clips={'yes' if session.playlist else 'no'}, legacy_audio={'yes' if session.audio_file else 'no'})"
             )
             if session.build_status != "ready":
                 raise SystemExit(1)

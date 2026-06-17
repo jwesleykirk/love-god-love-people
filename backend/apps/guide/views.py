@@ -9,11 +9,20 @@ from django.utils import timezone
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.prayer.models import PrayerSession
+from apps.dbr.models import ReadingDay
+from apps.prayer.models import PrayerSession, PrayerTopic
 from apps.prayer.serializers import PrayerSessionSerializer
 from apps.guide.services.compiler import compile_session_for_owner
+from apps.guide.services.paths import segment_path
 from apps.guide.services.readiness import guide_readiness
+from apps.guide.services.silence import ensure_silence, silence_path
 from django_q.tasks import async_task
+
+
+def _audio_response(path: Path) -> FileResponse:
+    if not path.exists():
+        raise Http404
+    return FileResponse(path.open("rb"), content_type="audio/mpeg")
 
 
 class GuideReadinessView(APIView):
@@ -72,20 +81,49 @@ class BuildNowView(APIView):
 
 
 class SessionAudioView(APIView):
+    """Legacy single-file session audio (pre-playlist sessions)."""
+
     def get(self, request, session_id: int):
         session = PrayerSession.objects.get(pk=session_id, owner=request.user)
         if not session.audio_file:
             raise Http404
-        path = Path(session.audio_file)
-        if not path.exists():
+        return _audio_response(Path(session.audio_file))
+
+
+class SegmentAudioView(APIView):
+    def get(self, request, key: str):
+        return _audio_response(segment_path(key))
+
+
+class DbrAudioView(APIView):
+    def get(self, request, reading_id: int):
+        reading = ReadingDay.objects.get(pk=reading_id)
+        if not reading.audio_cached_path:
             raise Http404
-        return FileResponse(path.open("rb"), content_type="audio/mpeg")
+        return _audio_response(Path(reading.audio_cached_path))
+
+
+class TopicAudioView(APIView):
+    def get(self, request, topic_id: int):
+        topic = PrayerTopic.objects.get(pk=topic_id, owner=request.user)
+        from apps.guide.services.paths import topic_audio_path
+
+        path = topic_audio_path(topic.id)
+        if not path.exists() and topic.audio_file:
+            path = Path(topic.audio_file)
+        return _audio_response(path)
+
+
+class SilenceAudioView(APIView):
+    def get(self, request, seconds: int):
+        if seconds < 1 or seconds > 120:
+            raise Http404
+        ensure_silence(seconds)
+        return _audio_response(silence_path(seconds))
 
 
 class VoicePreviewView(APIView):
     def get(self, request):
-        from apps.guide.services.paths import segment_path
-
         path = segment_path("opening_dbr_header")
         if not path.exists():
             return Response({"detail": "Segments not generated yet."}, status=404)

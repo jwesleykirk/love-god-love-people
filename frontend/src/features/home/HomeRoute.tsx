@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import {
@@ -7,6 +7,7 @@ import {
   sessionAmen,
   sessionTopicAction,
 } from "../api";
+import { GuidePlayer } from "./GuidePlayer";
 import type { PrayerSession } from "../types";
 
 function isFullSession(s: PrayerSession): s is PrayerSession & { id: number } {
@@ -20,7 +21,6 @@ export function HomeRoute() {
   const [reviewMode, setReviewMode] = useState(false);
   const [noteTopicId, setNoteTopicId] = useState<number | null>(null);
   const [noteText, setNoteText] = useState("");
-  const audioRef = useRef<HTMLAudioElement>(null);
 
   const load = async () => {
     setLoading(true);
@@ -43,8 +43,6 @@ export function HomeRoute() {
       setBuilding(false);
     }
   };
-
-  const handleAudioEnded = () => setReviewMode(true);
 
   const handleAmen = async () => {
     if (!session?.id) return;
@@ -74,7 +72,9 @@ export function HomeRoute() {
 
   const failed = session?.build_status === "failed";
   const pending = !session?.id || session.build_status === "pending";
-  const ready = session?.build_status === "ready" && session.audio_url;
+  const ready =
+    session?.build_status === "ready" &&
+    ((session.playlist?.length ?? 0) > 0 || Boolean(session.audio_url));
 
   return (
     <main className="container stack-lg">
@@ -105,16 +105,13 @@ export function HomeRoute() {
       {ready && !reviewMode && (
         <div className="card card--paper stack devotional-screen">
           <p className="muted">{session.session_date}</p>
-          <audio
-            ref={audioRef}
-            controls
-            src={session.audio_url!}
-            onEnded={handleAudioEnded}
-            style={{ width: "100%" }}
+          <GuidePlayer
+            clips={session.playlist ?? []}
+            sessionDate={session.session_date}
+            legacyAudioUrl={session.audio_url}
+            onComplete={() => setReviewMode(true)}
+            onSkipToReview={() => setReviewMode(true)}
           />
-          <button className="secondary" onClick={() => setReviewMode(true)}>
-            Skip to review
-          </button>
         </div>
       )}
 

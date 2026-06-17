@@ -109,7 +109,7 @@ def guide_readiness() -> dict:
         session_info = {
             "session_date": latest_session.session_date.isoformat(),
             "build_status": latest_session.build_status,
-            "has_audio": bool(latest_session.audio_file),
+            "has_audio": bool(latest_session.playlist or latest_session.audio_file),
         }
 
     return {

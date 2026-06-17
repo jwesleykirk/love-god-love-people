@@ -70,6 +70,7 @@ class PrayerSession(models.Model):
     session_date = models.DateField()
     completed_at = models.DateTimeField(null=True, blank=True)
     audio_file = models.TextField(blank=True, default="")
+    playlist = models.JSONField(default=list, blank=True)
     build_status = models.CharField(
         max_length=16,
         choices=BuildStatus.choices,

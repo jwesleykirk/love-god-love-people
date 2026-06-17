@@ -22,8 +22,10 @@ Single Railway service: Django API + React SPA (WhiteNoise) + Django-Q2 worker. 
   segments/     # fixed liturgy (generated once) + cached silence clips
   dbr/          # RSS enclosure MP3s
   topics/       # per-topic narration MP3s
-  sessions/     # compiled daily guides (rotated after 3 days)
+  sessions/     # legacy single-file guides (rotated after 3 days)
 ```
+
+Daily compile builds an ordered **playlist** of clip metadata on `PrayerSession.playlist` (segments, DBR, reflection pauses, prayer topics). Clips are served individually for lock-screen skip via the Media Session API. Legacy sessions may still reference one stitched `sessions/*.mp3` file.
 
 Compile inserts 10-second silence after reflective liturgy prompts and between prayer topics.
 
@@ -32,7 +34,7 @@ Compile inserts 10-second silence after reflective liturgy prompts and between p
 | Schedule | Default (PT) | Task |
 |----------|--------------|------|
 | `dbr_ingest` | 2:30 AM | Poll RSS, upsert `ReadingDay`, download MP3 |
-| `compile_daily_guides` | 3:00 AM | Schedule topics, ffmpeg compile, create `PrayerSession` |
+| `compile_daily_guides` | 3:00 AM | Schedule topics, build clip playlist, create `PrayerSession` |
 
 On-demand: topic narration generation (on create/edit), manual build from Home.
 

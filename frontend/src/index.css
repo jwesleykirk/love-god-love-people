@@ -474,6 +474,39 @@ nav.bottom-nav .bn-icon { font-size: 1.25rem; }
   min-height: 60vh;
 }
 
+.guide-player {
+  gap: var(--space-4);
+}
+
+.guide-player-now {
+  text-align: center;
+}
+
+.guide-player-eyebrow {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-caption);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.guide-player-title {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: var(--text-h3);
+  line-height: 1.25;
+}
+
+.guide-player-progress-label {
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-caption);
+}
+
+.guide-player-controls {
+  justify-content: center;
+  gap: var(--space-3);
+}
+
 .devotional-screen--prayer {
   background: linear-gradient(
     180deg,

@@ -64,11 +64,26 @@ export type PrayerLog = {
   answer_note: string;
 };
 
+export type GuideClipKind = "segment" | "dbr" | "topic" | "pause";
+
+export type GuideClip = {
+  id: string;
+  kind: GuideClipKind;
+  title: string;
+  subtitle: string;
+  audio_url: string;
+  segment_key?: string;
+  topic_id?: number;
+  reading_id?: number;
+  pause_seconds?: number;
+};
+
 export type PrayerSession = {
   id?: number;
   session_date: string;
   completed_at?: string | null;
   audio_url?: string | null;
+  playlist?: GuideClip[];
   build_status: BuildStatus | string;
   build_log?: string;
   logs?: PrayerLog[];
