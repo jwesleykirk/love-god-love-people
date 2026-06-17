@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.dbr.models import ReadingDay
-from apps.prayer.models import PrayerSession, PrayerTopic
+from apps.prayer.models import BuildStatus, PrayerSession, PrayerTopic
 from apps.prayer.serializers import PrayerSessionSerializer
 from apps.guide.services.compiler import compile_session_for_owner
 from apps.guide.services.paths import segment_path
@@ -147,3 +147,24 @@ class RegenerateSegmentsView(APIView):
     def post(self, request):
         async_task("apps.guide.tasks.generate_liturgy_segments", True)
         return Response({"ok": True, "message": "Segment regeneration queued."})
+
+
+class RegenerateTodayView(APIView):
+    def post(self, request):
+        today = timezone.localdate()
+        session, _ = PrayerSession.objects.get_or_create(
+            owner=request.user,
+            session_date=today,
+            defaults={"build_status": BuildStatus.BUILDING},
+        )
+        session.build_status = BuildStatus.BUILDING
+        session.save(update_fields=["build_status"])
+
+        async_task("apps.guide.tasks.regenerate_todays_guide", request.user.pk)
+        return Response(
+            {
+                "ok": True,
+                "message": "Today's guide regeneration queued.",
+                "build_status": session.build_status,
+            }
+        )

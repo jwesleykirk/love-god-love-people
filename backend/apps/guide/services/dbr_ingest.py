@@ -105,12 +105,14 @@ def parse_feed_item(item: ET.Element) -> dict:
     }
 
 
-def download_dbr_audio(guid: str, url: str) -> str:
+def download_dbr_audio(guid: str, url: str, *, force: bool = False) -> str:
     if not url:
         return ""
     path = dbr_audio_path(guid)
-    if path.exists():
+    if path.exists() and not force:
         return str(path)
+    if force and path.exists():
+        path.unlink(missing_ok=True)
     response = requests.get(url, timeout=120)
     response.raise_for_status()
     path.write_bytes(response.content)

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
+import { IconPlus } from "@/components/NavIcons";
 import { fetchPeople, fetchGroups } from "../api";
 import type { Group, Person } from "../types";
 
@@ -15,45 +16,60 @@ export function PeopleRoute() {
   }, []);
 
   return (
-    <main className="container stack-lg">
-      <div className="topbar">
-        <h1>People</h1>
-        <Link className="action-link" to={tab === "people" ? "/people/new" : "/groups/new"}>+ Add</Link>
-      </div>
-      <p className="muted section-sub">Keep relationships and groups easy to review.</p>
+    <main className="container">
+      <header className="page-header">
+        <h1 className="large-title">People</h1>
+        <Link
+          className="glass-icon-btn"
+          to={tab === "people" ? "/people/new" : "/groups/new"}
+          aria-label={tab === "people" ? "Add person" : "Add group"}
+        >
+          <IconPlus />
+        </Link>
+      </header>
 
-      <div className="tab-row">
-        <button className={`tab ${tab === "people" ? "tab--active" : ""}`} onClick={() => setTab("people")}>
+      <div className="tab-row" role="tablist">
+        <button
+          type="button"
+          role="tab"
+          className={`tab ${tab === "people" ? "tab--active" : ""}`}
+          onClick={() => setTab("people")}
+        >
           People
         </button>
-        <button className={`tab ${tab === "groups" ? "tab--active" : ""}`} onClick={() => setTab("groups")}>
+        <button
+          type="button"
+          role="tab"
+          className={`tab ${tab === "groups" ? "tab--active" : ""}`}
+          onClick={() => setTab("groups")}
+        >
           Groups
         </button>
       </div>
 
-      {tab === "people" && (
-        <ul className="bare">
-          {people.map((p) => (
-            <li key={p.id}>
-              <Link to={`/people/${p.id}`}>{p.name}</Link>
-              <span className="muted"> · {p.life_stage}</span>
-            </li>
-          ))}
-        </ul>
-      )}
+      <div className="grouped-list">
+        {tab === "people" && people.map((p) => (
+          <Link key={p.id} to={`/people/${p.id}`} className="grouped-list-row">
+            <div style={{ flex: 1 }}>
+              <div className="grouped-list-title">{p.name}</div>
+              <div className="grouped-list-meta">{p.life_stage}</div>
+            </div>
+            <span className="grouped-list-chevron" aria-hidden>›</span>
+          </Link>
+        ))}
 
-      {tab === "groups" && (
-        <ul className="bare">
-          {groups.map((g) => (
-            <li key={g.id}>
-              <Link to={`/groups/${g.id}`}>{g.name}</Link>
+        {tab === "groups" && groups.map((g) => (
+          <Link key={g.id} to={`/groups/${g.id}`} className="grouped-list-row">
+            <div style={{ flex: 1 }}>
+              <div className="grouped-list-title">{g.name}</div>
               {g.member_count != null && (
-                <span className="muted"> · {g.member_count} members</span>
+                <div className="grouped-list-meta">{g.member_count} members</div>
               )}
-            </li>
-          ))}
-        </ul>
-      )}
+            </div>
+            <span className="grouped-list-chevron" aria-hidden>›</span>
+          </Link>
+        ))}
+      </div>
     </main>
   );
 }

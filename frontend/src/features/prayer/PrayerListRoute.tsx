@@ -1,14 +1,24 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 
+import { IconPlus, IconSearch } from "@/components/NavIcons";
 import { fetchTopics } from "../api";
 import type { PrayerTopic } from "../types";
 
 type Filter = "all" | "person" | "group" | "general";
 
+function topicSubtitle(t: PrayerTopic) {
+  const who = t.person?.name ?? t.group?.name ?? "General";
+  const when = t.next_scheduled_date
+    ? new Date(t.next_scheduled_date + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })
+    : "today";
+  return `${who} · ${when}`;
+}
+
 export function PrayerListRoute() {
   const [topics, setTopics] = useState<PrayerTopic[]>([]);
   const [filter, setFilter] = useState<Filter>("all");
+  const [query, setQuery] = useState("");
 
   useEffect(() => {
     const params: Record<string, string> = { active: "1" };
@@ -18,38 +28,74 @@ export function PrayerListRoute() {
     void fetchTopics(params).then(setTopics);
   }, [filter]);
 
-  return (
-    <main className="container stack-lg">
-      <div className="topbar">
-        <h1>Prayer</h1>
-        <Link className="action-link" to="/prayer/new">+ Add</Link>
-      </div>
-      <p className="muted section-sub">Active topics ready to carry into today's guide.</p>
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return topics;
+    return topics.filter((t) =>
+      (t.narration_text || t.topic_text).toLowerCase().includes(q) ||
+      t.person?.name.toLowerCase().includes(q) ||
+      t.group?.name.toLowerCase().includes(q),
+    );
+  }, [topics, query]);
 
-      <div className="chip-row">
-        {(["all", "person", "group", "general"] as Filter[]).map((f) => (
+  const filters: { key: Filter; label: string }[] = [
+    { key: "all", label: "All" },
+    { key: "person", label: "Person" },
+    { key: "group", label: "Group" },
+    { key: "general", label: "General" },
+  ];
+
+  return (
+    <main className="container">
+      <header className="page-header">
+        <h1 className="large-title">Prayer</h1>
+        <Link to="/prayer/new" className="glass-icon-btn" aria-label="Add prayer topic">
+          <IconPlus />
+        </Link>
+      </header>
+
+      <div className="glass-search">
+        <IconSearch />
+        <input
+          type="search"
+          placeholder="Search topics"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          aria-label="Search topics"
+        />
+      </div>
+
+      <div className="segmented-control" role="tablist" aria-label="Filter topics">
+        {filters.map(({ key, label }) => (
           <button
-            key={f}
-            className={`chip-btn ${filter === f ? "chip-btn--active" : ""}`}
-            onClick={() => setFilter(f)}
+            key={key}
+            type="button"
+            role="tab"
+            aria-selected={filter === key}
+            className={filter === key ? "active" : ""}
+            onClick={() => setFilter(key)}
           >
-            {f === "all" ? "All" : f.charAt(0).toUpperCase() + f.slice(1)}
+            {label}
           </button>
         ))}
       </div>
 
-      <ul className="bare">
-        {topics.map((t) => (
-          <li key={t.id}>
-            <Link to={`/prayer/${t.id}`}>
-              {t.narration_text || t.topic_text}
-            </Link>
-            <span className="muted"> · {t.target_frequency}</span>
-            {t.person && <span className="muted"> · {t.person.name}</span>}
-            {t.group && <span className="muted"> · {t.group.name}</span>}
-          </li>
+      <div className="grouped-list">
+        {filtered.map((t) => (
+          <Link key={t.id} to={`/prayer/${t.id}`} className="grouped-list-row">
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div className="grouped-list-title">{t.narration_text || t.topic_text}</div>
+              <div className="grouped-list-meta">{topicSubtitle(t)}</div>
+            </div>
+            <span className={`freq-pill ${t.target_frequency === "monthly" ? "freq-pill--muted" : ""}`}>
+              {t.target_frequency}
+            </span>
+          </Link>
         ))}
-      </ul>
+        {filtered.length === 0 && (
+          <p className="muted" style={{ padding: 16 }}>No topics match.</p>
+        )}
+      </div>
     </main>
   );
 }

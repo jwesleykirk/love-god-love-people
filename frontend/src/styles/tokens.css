@@ -1,64 +1,75 @@
-/* Design tokens — see _docs/design-system.md for rationale.
- * Always read from these vars; never hardcode hexes in components. */
+/* Design tokens — see _docs/design-system.md */
 
 :root {
-  /* color */
-  --color-bg: #F2EAE0;
-  --color-card: #FFFFFF;
-  --color-primary: #A8C9C4;
-  --color-primary-dark: #7AAAA3;
-  --color-success: #C5DC83;
-  --color-warning: #E68F7A;
-  --color-text: #000000;
-  --color-text-muted: #6B6258;
-  --color-border: #EAE0D0;
-  --color-border-strong: #D8CCB6;
-  /* devotional surfaces — prayer is softer; remember uses success accent */
-  --color-prayer-muted: #8A9E9A;
-  --color-remember-accent: var(--color-success);
+  /* graphite palette — no accent hue */
+  --color-paper: #FBFBF9;
+  --color-surface: #FFFFFF;
+  --color-hairline: #EDECE8;
+  --color-stone-200: #D6D5D0;
+  --color-stone-400: #A7A7A2;
+  --color-graphite-500: #6B6B67;
+  --color-ink-800: #2A2A28;
+  --color-ink-900: #0E0E0D;
+
+  /* on-dark surfaces (player, daily cover) */
+  --color-dark-bg-start: #201F24;
+  --color-dark-bg-end: #0C0C0F;
+  --color-cover-bg-start: #34343C;
+  --color-cover-bg-end: #0C0C10;
+  --color-on-dark-primary: #F1F1F6;
+  --color-on-dark-secondary: #B6B6C0;
+  --color-on-dark-tertiary: #8A8A98;
+
+  /* iOS chrome grays */
+  --color-tab-inactive: #9A9A96;
 
   /* typography */
-  --font-serif: "Source Serif Pro", "Iowan Old Style", Georgia, serif;
-  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --text-h1: 2.25rem;
-  --text-h2: 1.75rem;
-  --text-h3: 1.375rem;
-  --text-body-lg: 1.125rem;
+  --font-sans: -apple-system, "SF Pro Text", "SF Pro Display", "Helvetica Neue", sans-serif;
+  --font-word: "Space Grotesk", var(--font-sans);
+  --text-large-title: 2rem;
+  --text-title-2: 1.375rem;
   --text-body: 1rem;
-  --text-label: 0.8125rem;
-  --text-caption: 0.75rem;
+  --text-subhead: 0.9375rem;
+  --text-footnote: 0.8125rem;
+  --text-caption: 0.6875rem;
 
   /* spacing */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
   --space-4: 16px;
+  --space-5: 20px;
   --space-6: 24px;
   --space-8: 32px;
   --space-12: 48px;
 
   /* radius */
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
-  --radius-2xl: 24px;
-  --radius-pill: 9999px;
+  --radius-sm: 9px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-xl: 22px;
+  --radius-hero: 26px;
+  --radius-pill: 99px;
+  --radius-tab-bar: 31px;
 
-  /* shadow */
-  --shadow-none: none;
-  --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
-  --shadow-md: 0 2px 8px rgba(0,0,0,0.05);
+  /* liquid glass */
+  --glass-bg: rgba(250, 250, 248, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.85);
+  --glass-blur: blur(20px) saturate(180%);
+  --glass-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.9);
 
-  /* legacy aliases — keep until all components migrate */
-  --fg: var(--color-text);
-  --bg: var(--color-bg);
-  --muted: var(--color-text-muted);
-  --accent: var(--color-primary-dark);
-  --accent-hover: var(--color-text);
-  --border: var(--color-border);
-  --card: var(--color-card);
-  --warn: var(--color-warning);
-  --good: var(--color-success);
-  --bad: var(--color-warning);
+  /* elevation */
+  --shadow-card: 0 8px 22px -18px rgba(0, 0, 0, 0.3);
+  --shadow-hero: 0 12px 30px -18px rgba(0, 0, 0, 0.35);
+  --shadow-primary-btn: 0 10px 24px -10px rgba(14, 14, 13, 0.7);
+
+  /* legacy aliases (migrate callers gradually) */
+  --color-bg: var(--color-paper);
+  --color-card: var(--color-surface);
+  --color-text: var(--color-ink-900);
+  --color-text-muted: var(--color-graphite-500);
+  --color-border: var(--color-hairline);
+  --color-border-strong: var(--color-stone-200);
+  --color-primary: var(--color-ink-900);
+  --color-primary-dark: var(--color-ink-800);
 }

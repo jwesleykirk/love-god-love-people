@@ -110,6 +110,6 @@ Keep **both** enabled. Default to **local for ship/configure**, **remote for dia
 
 ## Design system
 
-Visual tokens and component specs live in `_docs/design-system.md`. Implementation in `frontend/src/styles/tokens.css`.
+Visual tokens and component specs live in `_docs/design-system.md` (Resilient Native — graphite palette, Liquid Glass chrome, Space Grotesk for devotional moments). Pixel references in `_docs/design/`. Implementation in `frontend/src/styles/tokens.css`.
 
-**Hard rules:** always read from CSS variables — never hardcode hexes. Illustrations land in `frontend/public/illustrations/` (Wesley generates them separately; placeholders are in place).
+**Hard rules:** graphite-only palette — no accent hue; SF Pro for UI, Space Grotesk for the Word; Liquid Glass on floating chrome only; never hardcode hexes in components.

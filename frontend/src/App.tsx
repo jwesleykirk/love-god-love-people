@@ -1,5 +1,6 @@
 import { Navigate, NavLink, Route, Routes, useLocation } from "react-router-dom";
 
+import { IconHome, IconJournal, IconPeople, IconPrayer } from "./components/NavIcons";
 import { homeRoutes } from "./features/home/routes";
 import { peopleRoutes } from "./features/people/routes";
 import { prayerRoutes } from "./features/prayer/routes";
@@ -12,24 +13,31 @@ function BottomNav() {
     if (path === "/") return location.pathname === "/";
     return location.pathname.startsWith(path);
   };
+
+  const tabs = [
+    { path: "/", label: "Home", icon: IconHome, match: () => is("/") },
+    { path: "/people", label: "People", icon: IconPeople, match: () => is("/people") || is("/groups") },
+    { path: "/prayer", label: "Prayer", icon: IconPrayer, match: () => is("/prayer") },
+    { path: "/journal", label: "Journal", icon: IconJournal, match: () => is("/journal") },
+  ] as const;
+
   return (
     <nav className="bottom-nav" aria-label="Primary">
-      <NavLink to="/" className={is("/") ? "active" : ""} end>
-        <span className="bn-icon">🏠</span>
-        <span>Home</span>
-      </NavLink>
-      <NavLink to="/people" className={is("/people") || is("/groups") ? "active" : ""}>
-        <span className="bn-icon">👥</span>
-        <span>People</span>
-      </NavLink>
-      <NavLink to="/prayer" className={is("/prayer") ? "active" : ""}>
-        <span className="bn-icon">🙏</span>
-        <span>Prayer</span>
-      </NavLink>
-      <NavLink to="/journal" className={is("/journal") ? "active" : ""}>
-        <span className="bn-icon">📝</span>
-        <span>Journal</span>
-      </NavLink>
+      {tabs.map(({ path, label, icon: Icon, match }) => {
+        const active = match();
+        return (
+          <NavLink key={path} to={path} className={active ? "active" : ""} end={path === "/"}>
+            {active ? (
+              <span className="bn-pill">
+                <Icon size={19} />
+              </span>
+            ) : (
+              <Icon />
+            )}
+            <span className="bn-label">{label}</span>
+          </NavLink>
+        );
+      })}
     </nav>
   );
 }

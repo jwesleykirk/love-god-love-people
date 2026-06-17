@@ -28,6 +28,26 @@ class GuideReadinessOpsTests(TestCase):
         self.assertIn(response.status_code, {200, 503})
 
 
+class RegenerateTodayTests(TestCase):
+    def setUp(self):
+        from django.contrib.auth import get_user_model
+
+        User = get_user_model()
+        self.user = User.objects.create_user(username="wesley@local", email="wesley@local")
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
+
+    @patch("apps.guide.views.async_task")
+    def test_regenerate_queues_background_job(self, async_task):
+        response = self.client.post("/api/guide/regenerate/")
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json()["ok"])
+        async_task.assert_called_once_with(
+            "apps.guide.tasks.regenerate_todays_guide",
+            self.user.pk,
+        )
+
+
 class SegmentPauseTests(TestCase):
     def test_reflection_prompts_pause_after_playback(self):
         reflection_keys = {

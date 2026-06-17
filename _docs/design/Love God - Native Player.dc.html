@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  html, body { margin:0; padding:0; }
+  body { background:#E8E7E3; }
+  ::-webkit-scrollbar { width:10px; height:10px; }
+  ::-webkit-scrollbar-thumb { background:#cfccc3; border-radius:99px; }
+</style>
+</helmet>
+
+<div style="min-height:100vh;background:radial-gradient(120% 80% at 50% 0%,#F1F0EC,#E4E3DE);font-family:-apple-system,'SF Pro Text','SF Pro Display','Helvetica Neue',sans-serif;color:#0E0E0D;padding:48px 40px 90px;box-sizing:border-box">
+  <div style="max-width:1560px;margin:0 auto">
+
+    <!-- HEADER -->
+    <div style="margin-bottom:6px">
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:12px;letter-spacing:3px;color:#8A8A86;text-transform:uppercase;font-weight:500">Listening · the resilient-native answer</div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:42px;font-weight:700;line-height:1.0;margin-top:8px;letter-spacing:-1.5px">On the system Now Playing stack</div>
+      <div style="font-size:16px;color:#6f6c66;max-width:880px;margin-top:10px;line-height:1.5">Don't rebuild the player — back it with Apple's audio infrastructure. You design two things: the <b>in-app player</b> and the <b>artwork + metadata</b>. Everything else — lock screen, Control Center, CarPlay, Apple&nbsp;Watch, background playback — is system-drawn from that same metadata, which is exactly why it stays stable.</div>
+    </div>
+
+    <!-- ===== HOW IT WORKS — SPEC STRIP ===== -->
+    <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:24px">
+      <div style="flex:1;min-width:240px;background:rgba(255,255,255,0.62);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.8);border-radius:18px;padding:18px 20px;box-shadow:0 8px 24px -16px rgba(0,0,0,0.4)">
+        <div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#8A8A86;font-weight:600;margin-bottom:10px">Keeps playing when closed</div>
+        <div style="font-size:13.5px;color:#3a3a38;line-height:1.5">Background Modes → <b>Audio</b>, plus an <b>AVAudioSession</b> set to <code style="font-family:ui-monospace,monospace;font-size:12px;background:#EDECE8;padding:1px 5px;border-radius:5px">.playback</code> and activated on play. One <b>AVPlayer</b> on the stitched daily MP3 — a single file means rock-solid seeking everywhere.</div>
+      </div>
+      <div style="flex:1;min-width:240px;background:rgba(255,255,255,0.62);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.8);border-radius:18px;padding:18px 20px;box-shadow:0 8px 24px -16px rgba(0,0,0,0.4)">
+        <div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#8A8A86;font-weight:600;margin-bottom:10px">Lock · Control Center · for free</div>
+        <div style="font-size:13.5px;color:#3a3a38;line-height:1.5">Publish title, subtitle, artwork, duration &amp; elapsed to <b>MPNowPlayingInfoCenter</b>; wire play / pause / skip ±15 / scrub on <b>MPRemoteCommandCenter</b>. You never custom-draw transport on these surfaces, so there's nothing to break.</div>
+      </div>
+      <div style="flex:1;min-width:240px;background:rgba(255,255,255,0.62);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.8);border-radius:18px;padding:18px 20px;box-shadow:0 8px 24px -16px rgba(0,0,0,0.4)">
+        <div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#8A8A86;font-weight:600;margin-bottom:10px">CarPlay &amp; Watch · zero extra UI</div>
+        <div style="font-size:13.5px;color:#3a3a38;line-height:1.5">CarPlay renders your metadata in the system <b>CPNowPlayingTemplate</b>; the Watch <b>Now Playing</b> app mirrors the active session. Liturgy steps ride along as <b>chapter markers</b>, so "skip step" works on every surface.</div>
+      </div>
+    </div>
+
+    <div style="height:1px;background:#D5D4CF;margin:34px 0 8px"></div>
+
+    <!-- ============================================================ -->
+    <!-- ROW 1 — IN-APP PLAYER + WHAT WE CONTROL -->
+    <!-- ============================================================ -->
+    <div style="display:flex;align-items:baseline;gap:12px;margin-top:28px;flex-wrap:wrap">
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:24px;font-weight:600;letter-spacing:-0.3px">What you design</div>
+      <div style="font-size:14px;color:#8A8A86">the in-app player, and the artwork that travels everywhere</div>
+    </div>
+
+    <div style="display:flex;gap:40px;flex-wrap:wrap;margin-top:24px;align-items:flex-start">
+
+      <!-- IN-APP NATIVE PLAYER -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:14px">
+        <div style="width:300px;height:632px;background:#1A1A1C;border-radius:50px;padding:7px;box-shadow:0 30px 60px -24px rgba(0,0,0,0.5)">
+          <div style="width:100%;height:100%;border-radius:43px;overflow:hidden;position:relative;background:linear-gradient(180deg,#201F24,#0C0C0F 80%)">
+            <!-- status bar -->
+            <div style="height:46px;display:flex;align-items:center;justify-content:space-between;padding:0 26px;position:relative;z-index:6">
+              <div style="font-size:15px;font-weight:600;color:#EDEDF0">9:41</div>
+              <div style="position:absolute;left:50%;top:11px;transform:translateX(-50%);width:88px;height:27px;background:#000;border-radius:99px"></div>
+              <div style="display:flex;align-items:center;gap:6px">
+                <svg width="18" height="12" viewBox="0 0 18 12" fill="#EDEDF0"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="4.5" width="3" height="7.5" rx="1"/><rect x="10" y="2" width="3" height="10" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1" opacity="0.4"/></svg>
+                <div style="display:flex;align-items:center;gap:1px"><div style="width:22px;height:11px;border:1.3px solid #EDEDF0;border-radius:3px;padding:1.3px;box-sizing:border-box"><div style="width:80%;height:100%;background:#EDEDF0;border-radius:1px"></div></div><div style="width:1.5px;height:4px;background:#EDEDF0;border-radius:1px"></div></div>
+              </div>
+            </div>
+            <!-- top bar -->
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:2px 22px 0;color:#9A9AA2">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9A9AA2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9.5 12 15l6-5.5"/></svg>
+              <div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase">Morning Prayer</div>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="#9A9AA2"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+            </div>
+
+            <!-- ARTWORK -->
+            <div style="padding:18px 26px 0">
+              <div style="width:100%;aspect-ratio:1/1;border-radius:18px;background:linear-gradient(150deg,#33333A,#0E0E12);box-shadow:0 20px 44px -18px rgba(0,0,0,0.8);display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden">
+                <div style="position:absolute;width:150px;height:150px;border-radius:50%;border:1px solid rgba(255,255,255,0.08)"></div>
+                <div style="position:absolute;width:104px;height:104px;border-radius:50%;border:1px solid rgba(255,255,255,0.06)"></div>
+                <div style="font-family:'Space Grotesk',sans-serif;font-size:30px;font-weight:600;color:#EEF;letter-spacing:0.3px;position:relative">Psalm 23</div>
+                <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#8A8A98;margin-top:6px;position:relative">Love God, Love People</div>
+              </div>
+            </div>
+
+            <!-- title -->
+            <div style="padding:18px 26px 0">
+              <div style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:600;color:#F2F2F6">Psalm 23</div>
+              <div style="font-size:13px;color:#9A9AA2;margin-top:2px">Scripture · step 5 of 12</div>
+            </div>
+
+            <!-- scrubber -->
+            <div style="padding:14px 26px 0">
+              <div style="height:4px;background:rgba(255,255,255,0.16);border-radius:99px;position:relative"><div style="position:absolute;left:0;top:0;height:4px;width:42%;background:#EDEDF0;border-radius:99px"></div><div style="position:absolute;left:42%;top:-3px;width:10px;height:10px;border-radius:50%;background:#fff;transform:translateX(-50%)"></div></div>
+              <div style="display:flex;justify-content:space-between;font-size:11px;color:#8A8A96;margin-top:7px"><span>2:54</span><span>-4:07</span></div>
+            </div>
+
+            <!-- transport -->
+            <div style="display:flex;align-items:center;justify-content:center;gap:30px;padding:8px 0 0">
+              <div style="display:flex;flex-direction:column;align-items:center;color:#E6E6EC"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#E6E6EC" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5a7 7 0 1 1-6.3 4"/><path d="M5.5 4.5V9h4.5"/></svg></div>
+              <div style="width:60px;height:60px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center"><div style="display:flex;gap:5px"><span style="width:6px;height:22px;background:#0C0C0F;border-radius:2px"></span><span style="width:6px;height:22px;background:#0C0C0F;border-radius:2px"></span></div></div>
+              <div style="display:flex;flex-direction:column;align-items:center;color:#E6E6EC"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#E6E6EC" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5a7 7 0 1 0 6.3 4"/><path d="M18.5 4.5V9H14"/></svg></div>
+            </div>
+
+            <!-- bottom: airplay + chapters -->
+            <div style="position:absolute;left:0;right:0;bottom:18px;display:flex;align-items:center;justify-content:space-between;padding:0 30px">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9A9AA2" stroke-width="1.7" stroke-linejoin="round"><path d="M5 17H3.5A1.5 1.5 0 0 1 2 15.5v-9A1.5 1.5 0 0 1 3.5 5h17A1.5 1.5 0 0 1 22 6.5v9a1.5 1.5 0 0 1-1.5 1.5H19"/><path d="m12 14 5 6H7z" fill="#9A9AA2"/></svg>
+              <div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#9A9AA2;display:flex;align-items:center;gap:6px">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9A9AA2" stroke-width="2" stroke-linecap="round"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg>
+                Liturgy · 12 steps
+              </div>
+              <span style="font-size:13px;font-weight:600;color:#9A9AA2">1×</span>
+            </div>
+          </div>
+        </div>
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:14px;color:#8A8A86;text-align:center">In-app player<br><span style="font-size:12px;color:#A7A7A2">native pattern, Iconoclast skin</span></div>
+      </div>
+
+      <!-- ARTWORK BREAKDOWN -->
+      <div style="flex:1;min-width:300px;max-width:440px">
+        <div style="background:rgba(255,255,255,0.62);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.8);border-radius:20px;padding:24px;box-shadow:0 10px 28px -18px rgba(0,0,0,0.4)">
+          <div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#8A8A86;font-weight:600">The one asset that travels everywhere</div>
+          <div style="display:flex;gap:18px;align-items:center;margin-top:16px">
+            <div style="width:118px;height:118px;flex:none;border-radius:16px;background:linear-gradient(150deg,#33333A,#0E0E12);display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;box-shadow:0 12px 28px -12px rgba(0,0,0,0.6)">
+              <div style="position:absolute;width:92px;height:92px;border-radius:50%;border:1px solid rgba(255,255,255,0.08)"></div>
+              <div style="font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:600;color:#EEF;position:relative">Psalm 23</div>
+              <div style="font-size:7px;letter-spacing:1.5px;text-transform:uppercase;color:#8A8A98;margin-top:4px;position:relative">Love God, Love People</div>
+            </div>
+            <div style="font-size:13.5px;color:#3a3a38;line-height:1.55">A graphite tile generated per day — the reading reference set in Space Grotesk. This single 1024&nbsp;px artwork is what the lock screen, Control Center, CarPlay, and Watch all display. Brand consistency with zero per-surface work.</div>
+          </div>
+          <div style="height:1px;background:#E0DFDA;margin:20px 0"></div>
+          <div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#8A8A86;font-weight:600;margin-bottom:12px">Metadata you publish</div>
+          <div style="display:flex;flex-direction:column;gap:9px;font-size:13.5px">
+            <div style="display:flex;gap:10px"><span style="width:74px;flex:none;color:#9A9A96;font-size:11px;letter-spacing:0.5px;text-transform:uppercase;padding-top:1px">Title</span><span style="color:#0E0E0D;font-weight:500">Psalm 23</span></div>
+            <div style="display:flex;gap:10px"><span style="width:74px;flex:none;color:#9A9A96;font-size:11px;letter-spacing:0.5px;text-transform:uppercase;padding-top:1px">Subtitle</span><span style="color:#0E0E0D;font-weight:500">Morning Prayer · Love God, Love People</span></div>
+            <div style="display:flex;gap:10px"><span style="width:74px;flex:none;color:#9A9A96;font-size:11px;letter-spacing:0.5px;text-transform:uppercase;padding-top:1px">Duration</span><span style="color:#0E0E0D;font-weight:500">7:01 · elapsed 2:54</span></div>
+            <div style="display:flex;gap:10px"><span style="width:74px;flex:none;color:#9A9A96;font-size:11px;letter-spacing:0.5px;text-transform:uppercase;padding-top:1px">Chapters</span><span style="color:#0E0E0D;font-weight:500">12 liturgy steps with titles</span></div>
+            <div style="display:flex;gap:10px"><span style="width:74px;flex:none;color:#9A9A96;font-size:11px;letter-spacing:0.5px;text-transform:uppercase;padding-top:1px">Commands</span><span style="color:#0E0E0D;font-weight:500">play · pause · skip ±15 · scrub</span></div>
+          </div>
+        </div>
+
+        <div style="background:rgba(255,255,255,0.5);border:1px solid rgba(255,255,255,0.7);border-radius:16px;padding:16px 18px;margin-top:14px">
+          <div style="font-size:13px;color:#5a5a58;line-height:1.5"><b style="color:#0E0E0D">On the bespoke orb:</b> it can still live as the in-app screen if you want it — but the lock / car / watch surfaces are system-drawn and can't take it. So the brand there is carried entirely by the artwork. Designing the artwork as first-class is the resilient move.</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="height:1px;background:#D5D4CF;margin:40px 0 8px"></div>
+
+    <!-- ============================================================ -->
+    <!-- ROW 2 — SYSTEM SURFACES -->
+    <!-- ============================================================ -->
+    <div style="display:flex;align-items:baseline;gap:12px;margin-top:28px;flex-wrap:wrap">
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:24px;font-weight:600;letter-spacing:-0.3px">What the system draws</div>
+      <div style="font-size:14px;color:#8A8A86">same metadata, four surfaces, no extra code</div>
+    </div>
+
+    <div style="display:flex;gap:40px;flex-wrap:wrap;margin-top:24px;align-items:flex-start;justify-content:center">
+
+      <!-- LOCK SCREEN -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:14px">
+        <div style="width:300px;height:632px;background:#1A1A1C;border-radius:50px;padding:7px;box-shadow:0 30px 60px -24px rgba(0,0,0,0.5)">
+          <div style="width:100%;height:100%;border-radius:43px;overflow:hidden;position:relative;background:linear-gradient(165deg,#2A2A30,#101013)">
+            <!-- status -->
+            <div style="height:46px;display:flex;align-items:center;justify-content:space-between;padding:0 26px;position:relative;z-index:6">
+              <div style="font-size:15px;font-weight:600;color:#EDEDF0">9:41</div>
+              <div style="position:absolute;left:50%;top:11px;transform:translateX(-50%);width:88px;height:27px;background:#000;border-radius:99px"></div>
+              <div style="display:flex;align-items:center;gap:6px"><svg width="18" height="12" viewBox="0 0 18 12" fill="#EDEDF0"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="4.5" width="3" height="7.5" rx="1"/><rect x="10" y="2" width="3" height="10" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1" opacity="0.4"/></svg><div style="display:flex;align-items:center;gap:1px"><div style="width:22px;height:11px;border:1.3px solid #EDEDF0;border-radius:3px;padding:1.3px;box-sizing:border-box"><div style="width:80%;height:100%;background:#EDEDF0;border-radius:1px"></div></div><div style="width:1.5px;height:4px;background:#EDEDF0;border-radius:1px"></div></div></div>
+            </div>
+            <!-- clock -->
+            <div style="text-align:center;margin-top:14px">
+              <div style="font-size:13px;color:#D6D6DE;font-weight:500">Tuesday, June 16</div>
+              <div style="font-size:74px;font-weight:600;color:#fff;line-height:0.95;letter-spacing:-1px;margin-top:2px">9:41</div>
+            </div>
+            <!-- media card -->
+            <div style="position:absolute;left:14px;right:14px;bottom:84px">
+              <div style="background:rgba(40,40,46,0.55);backdrop-filter:blur(22px) saturate(160%);-webkit-backdrop-filter:blur(22px) saturate(160%);border:1px solid rgba(255,255,255,0.12);border-radius:22px;padding:16px">
+                <div style="display:flex;gap:12px;align-items:center">
+                  <div style="width:56px;height:56px;flex:none;border-radius:10px;background:linear-gradient(150deg,#33333A,#0E0E12);display:flex;align-items:center;justify-content:center"><span style="font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:600;color:#EEF">Ps 23</span></div>
+                  <div style="flex:1;min-width:0"><div style="font-size:16px;font-weight:600;color:#fff">Psalm 23</div><div style="font-size:13px;color:#B6B6C0;margin-top:1px">Morning Prayer · Love God…</div></div>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B6B6C0" stroke-width="1.7" stroke-linejoin="round"><path d="M5 17H3.5A1.5 1.5 0 0 1 2 15.5v-9A1.5 1.5 0 0 1 3.5 5h17A1.5 1.5 0 0 1 22 6.5v9a1.5 1.5 0 0 1-1.5 1.5H19"/><path d="m12 14 5 6H7z" fill="#B6B6C0"/></svg>
+                </div>
+                <div style="height:5px;background:rgba(255,255,255,0.18);border-radius:99px;position:relative;margin-top:14px"><div style="position:absolute;left:0;top:0;height:5px;width:42%;background:#fff;border-radius:99px"></div></div>
+                <div style="display:flex;justify-content:space-between;font-size:10px;color:#9A9AA2;margin-top:6px"><span>2:54</span><span>-4:07</span></div>
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 18px 0">
+                  <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5a7 7 0 1 1-6.3 4"/><path d="M5.5 4.5V9h4.5"/></svg>
+                  <div style="display:flex;gap:5px"><span style="width:7px;height:26px;background:#fff;border-radius:2px"></span><span style="width:7px;height:26px;background:#fff;border-radius:2px"></span></div>
+                  <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5a7 7 0 1 0 6.3 4"/><path d="M18.5 4.5V9H14"/></svg>
+                </div>
+              </div>
+            </div>
+            <!-- bottom affordances -->
+            <div style="position:absolute;left:0;right:0;bottom:30px;display:flex;justify-content:space-between;padding:0 34px">
+              <div style="width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.14);display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M12 2a4 4 0 0 0-4 4v5a4 4 0 0 0 8 0V6a4 4 0 0 0-4-4z"/><path d="M5 11a7 7 0 0 0 14 0" fill="none" stroke="#fff" stroke-width="1.5"/></svg></div>
+              <div style="width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.14);display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><circle cx="12" cy="11" r="7"/><path d="M12 8v3l2 1.5"/></svg></div>
+            </div>
+            <div style="position:absolute;left:50%;bottom:9px;transform:translateX(-50%);width:120px;height:5px;border-radius:99px;background:rgba(255,255,255,0.6)"></div>
+          </div>
+        </div>
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:14px;color:#8A8A86">Lock Screen</div>
+      </div>
+
+      <!-- CONTROL CENTER + WATCH stacked -->
+      <div style="display:flex;flex-direction:column;gap:24px;align-items:center">
+        <!-- Control Center media tile -->
+        <div style="display:flex;flex-direction:column;align-items:center;gap:12px">
+          <div style="width:286px;background:rgba(44,44,50,0.72);backdrop-filter:blur(24px) saturate(160%);-webkit-backdrop-filter:blur(24px) saturate(160%);border:1px solid rgba(255,255,255,0.14);border-radius:26px;padding:18px;box-shadow:0 24px 50px -22px rgba(0,0,0,0.6)">
+            <div style="display:flex;gap:12px;align-items:center">
+              <div style="width:50px;height:50px;flex:none;border-radius:10px;background:linear-gradient(150deg,#33333A,#0E0E12);display:flex;align-items:center;justify-content:center"><span style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;color:#EEF">Ps 23</span></div>
+              <div style="flex:1;min-width:0"><div style="font-size:15px;font-weight:600;color:#fff">Psalm 23</div><div style="font-size:12px;color:#B6B6C0">Morning Prayer</div></div>
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#B6B6C0" stroke-width="1.7" stroke-linejoin="round"><path d="M5 17H3.5A1.5 1.5 0 0 1 2 15.5v-9A1.5 1.5 0 0 1 3.5 5h17A1.5 1.5 0 0 1 22 6.5v9a1.5 1.5 0 0 1-1.5 1.5H19"/><path d="m12 14 5 6H7z" fill="#B6B6C0"/></svg>
+            </div>
+            <div style="height:5px;background:rgba(255,255,255,0.18);border-radius:99px;position:relative;margin-top:13px"><div style="position:absolute;left:0;top:0;height:5px;width:42%;background:#fff;border-radius:99px"></div></div>
+            <div style="display:flex;align-items:center;justify-content:space-around;padding:11px 0 2px">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5a7 7 0 1 1-6.3 4"/><path d="M5.5 4.5V9h4.5"/></svg>
+              <div style="display:flex;gap:5px"><span style="width:6px;height:23px;background:#fff;border-radius:2px"></span><span style="width:6px;height:23px;background:#fff;border-radius:2px"></span></div>
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5a7 7 0 1 0 6.3 4"/><path d="M18.5 4.5V9H14"/></svg>
+            </div>
+          </div>
+          <div style="font-family:'Space Grotesk',sans-serif;font-size:14px;color:#8A8A86">Control Center</div>
+        </div>
+
+        <!-- Apple Watch -->
+        <div style="display:flex;flex-direction:column;align-items:center;gap:12px">
+          <div style="width:182px;height:218px;background:#000;border-radius:46px;padding:10px;box-shadow:0 24px 50px -22px rgba(0,0,0,0.6);position:relative">
+            <div style="width:100%;height:100%;border-radius:36px;overflow:hidden;background:#0A0A0C;display:flex;flex-direction:column;padding:12px 14px;box-sizing:border-box">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#E0A53A" stroke-width="2"><path d="M5 17H3.5A1.5 1.5 0 0 1 2 15.5v-9A1.5 1.5 0 0 1 3.5 5h17A1.5 1.5 0 0 1 22 6.5v9a1.5 1.5 0 0 1-1.5 1.5H19"/></svg>
+                <span style="font-size:13px;font-weight:600;color:#fff">9:41</span>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center;margin-top:8px">
+                <div style="width:30px;height:30px;flex:none;border-radius:7px;background:linear-gradient(150deg,#33333A,#0E0E12);display:flex;align-items:center;justify-content:center"><span style="font-family:'Space Grotesk',sans-serif;font-size:8px;font-weight:600;color:#EEF">23</span></div>
+                <div style="min-width:0"><div style="font-size:12px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Psalm 23</div><div style="font-size:9px;color:#9A9AA2">Morning Prayer</div></div>
+              </div>
+              <div style="height:3px;background:rgba(255,255,255,0.18);border-radius:99px;position:relative;margin-top:10px"><div style="position:absolute;left:0;top:0;height:3px;width:42%;background:#fff;border-radius:99px"></div></div>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding:0 4px">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5a7 7 0 1 1-6.3 4"/><path d="M5.5 4.5V9h4.5"/></svg>
+                <div style="width:40px;height:40px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center"><div style="display:flex;gap:3px"><span style="width:4px;height:15px;background:#0A0A0C;border-radius:1px"></span><span style="width:4px;height:15px;background:#0A0A0C;border-radius:1px"></span></div></div>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5a7 7 0 1 0 6.3 4"/><path d="M18.5 4.5V9H14"/></svg>
+              </div>
+            </div>
+            <!-- crown -->
+            <div style="position:absolute;right:-3px;top:78px;width:5px;height:30px;border-radius:3px;background:#2A2A2E"></div>
+          </div>
+          <div style="font-family:'Space Grotesk',sans-serif;font-size:14px;color:#8A8A86">Apple Watch · Now Playing</div>
+        </div>
+      </div>
+
+      <!-- CARPLAY -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:14px">
+        <div style="width:452px;height:282px;background:#15151A;border:7px solid #2A2A2E;border-radius:20px;overflow:hidden;position:relative;box-shadow:0 30px 60px -24px rgba(0,0,0,0.5);background-image:linear-gradient(160deg,#1C1C22,#0C0C0F)">
+          <!-- carplay status bar -->
+          <div style="height:30px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;background:rgba(0,0,0,0.2)">
+            <div style="display:flex;align-items:center;gap:7px"><span style="font-size:12px;font-weight:600;color:#fff">9:41</span></div>
+            <div style="display:flex;align-items:center;gap:9px"><svg width="15" height="11" viewBox="0 0 18 12" fill="#fff"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="4.5" width="3" height="7.5" rx="1"/><rect x="10" y="2" width="3" height="10" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg><span style="font-size:11px;color:#fff">LTE</span></div>
+          </div>
+          <!-- now playing body -->
+          <div style="display:flex;gap:22px;padding:24px 26px 0">
+            <div style="width:150px;height:150px;flex:none;border-radius:14px;background:linear-gradient(150deg,#33333A,#0E0E12);display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;box-shadow:0 16px 36px -14px rgba(0,0,0,0.7)">
+              <div style="position:absolute;width:118px;height:118px;border-radius:50%;border:1px solid rgba(255,255,255,0.08)"></div>
+              <div style="font-family:'Space Grotesk',sans-serif;font-size:24px;font-weight:600;color:#EEF;position:relative">Psalm 23</div>
+              <div style="font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:#8A8A98;margin-top:5px;position:relative">Love God, Love People</div>
+            </div>
+            <div style="flex:1;min-width:0;padding-top:6px">
+              <div style="font-family:'Space Grotesk',sans-serif;font-size:26px;font-weight:600;color:#fff">Psalm 23</div>
+              <div style="font-size:14px;color:#A8A8B2;margin-top:3px">Morning Prayer · Love God, Love People</div>
+              <div style="height:5px;background:rgba(255,255,255,0.16);border-radius:99px;position:relative;margin-top:20px"><div style="position:absolute;left:0;top:0;height:5px;width:42%;background:#fff;border-radius:99px"></div></div>
+              <div style="display:flex;justify-content:space-between;font-size:11px;color:#9A9AA2;margin-top:7px"><span>2:54</span><span>-4:07</span></div>
+            </div>
+          </div>
+          <!-- transport bar -->
+          <div style="position:absolute;left:0;right:0;bottom:0;height:62px;background:rgba(0,0,0,0.28);display:flex;align-items:center;justify-content:center;gap:46px">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5a7 7 0 1 1-6.3 4"/><path d="M5.5 4.5V9h4.5"/><text x="12" y="15" font-size="7" fill="#fff" text-anchor="middle" stroke="none">15</text></svg>
+            <div style="width:46px;height:46px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center"><div style="display:flex;gap:4px"><span style="width:5px;height:18px;background:#15151A;border-radius:2px"></span><span style="width:5px;height:18px;background:#15151A;border-radius:2px"></span></div></div>
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5a7 7 0 1 0 6.3 4"/><path d="M18.5 4.5V9H14"/><text x="12" y="15" font-size="7" fill="#fff" text-anchor="middle" stroke="none">15</text></svg>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#A8A8B2" stroke-width="1.8" stroke-linecap="round"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg>
+          </div>
+        </div>
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:14px;color:#8A8A86">CarPlay · Now Playing</div>
+        <div style="font-size:12px;color:#A7A7A2;max-width:420px;text-align:center;line-height:1.45;margin-top:-4px">System template (CPNowPlayingTemplate) — you supply artwork, title, subtitle &amp; the skip buttons; CarPlay draws the rest at driver-safe sizes.</div>
+      </div>
+
+    </div>
+
+    <div style="text-align:center;font-family:'Space Grotesk',sans-serif;font-size:14px;letter-spacing:0.5px;color:#9a9a98;margin-top:46px">One AVPlayer, one Now Playing session — designed once, stable on every surface</div>
+
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

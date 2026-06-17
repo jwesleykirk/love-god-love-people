@@ -35,14 +35,14 @@ def _subject_for_topic(topic: PrayerTopic) -> str:
     return "this need"
 
 
-def generate_topic_narration(topic_id: int) -> None:
+def generate_topic_narration(topic_id: int, force: bool = False) -> None:
     topic = PrayerTopic.objects.select_related("person", "group").get(pk=topic_id)
-    if topic.narration_generated and topic.audio_file:
+    if not force and topic.narration_generated and topic.audio_file:
         return
 
     subject = _subject_for_topic(topic)
 
-    if not topic.narration_text:
+    if force or not topic.narration_text:
         if openrouter_available():
             try:
                 topic.narration_text = generate_narration(subject, topic.topic_text)
@@ -50,7 +50,9 @@ def generate_topic_narration(topic_id: int) -> None:
                 topic.narration_text = f"Pray for {subject}'s {topic.topic_text}"
         else:
             topic.narration_text = f"Pray for {subject}'s {topic.topic_text}"
-        topic.save(update_fields=["narration_text"])
+        if force:
+            topic.narration_generated = False
+        topic.save(update_fields=["narration_text", "narration_generated"] if force else ["narration_text"])
 
     path = topic_audio_path(topic.id)
     if tts_available():

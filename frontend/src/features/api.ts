@@ -26,6 +26,13 @@ export function regenerateSegments() {
   return apiFetch<{ ok: boolean }>("/api/guide/segments/regenerate/", { method: "POST" });
 }
 
+export function regenerateTodaysGuide() {
+  return apiFetch<{ ok: boolean; message: string; build_status: string }>(
+    "/api/guide/regenerate/",
+    { method: "POST" },
+  );
+}
+
 export function sessionAmen(sessionId: number) {
   return apiFetch<{ ok: boolean }>(`/api/prayer/sessions/${sessionId}/amen/`, { method: "POST" });
 }

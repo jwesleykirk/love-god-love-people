@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  html, body { margin:0; padding:0; }
+  body { background:#E8E7E3; }
+  ::-webkit-scrollbar { width:10px; height:10px; }
+  ::-webkit-scrollbar-thumb { background:#cfccc3; border-radius:99px; }
+  @keyframes breathe { 0%,100%{ transform:scale(1); opacity:.9 } 50%{ transform:scale(1.05); opacity:1 } }
+</style>
+</helmet>
+
+<div style="min-height:100vh;background:radial-gradient(120% 80% at 50% 0%,#F1F0EC,#E4E3DE);font-family:-apple-system,'SF Pro Text','SF Pro Display','Helvetica Neue',sans-serif;color:#0E0E0D;padding:48px 40px 90px;box-sizing:border-box">
+  <div style="max-width:1500px;margin:0 auto">
+
+    <!-- ===== HEADER ===== -->
+    <div style="margin-bottom:6px">
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:12px;letter-spacing:3px;color:#8A8A86;text-transform:uppercase;font-weight:500">Love God, Love People · Hi-fi direction</div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:42px;font-weight:700;line-height:1.0;margin-top:8px;letter-spacing:-1.5px">Resilient Native — Liquid Glass × Iconoclast</div>
+      <div style="font-size:16px;color:#6f6c66;max-width:820px;margin-top:10px;line-height:1.5">iOS 27 material language — translucent floating chrome, concentric radii, capsule controls — carrying the Iconoclast's soul: a graphite-only palette, word-first hierarchy, and Space&nbsp;Grotesk reserved for the devotional moments. Native by default; bespoke only where it matters most.</div>
+    </div>
+
+    <!-- ===== SYSTEM LEGEND ===== -->
+    <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:24px">
+      <!-- palette -->
+      <div style="background:rgba(255,255,255,0.62);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.8);border-radius:18px;padding:16px 18px;box-shadow:0 8px 24px -16px rgba(0,0,0,0.4)">
+        <div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#8A8A86;margin-bottom:10px">Graphite scale · one tint, by conviction</div>
+        <div style="display:flex;gap:7px">
+          <div style="width:38px;height:38px;border-radius:9px;background:#FBFBF9;border:1px solid #E4E3DE"></div>
+          <div style="width:38px;height:38px;border-radius:9px;background:#EDECE8"></div>
+          <div style="width:38px;height:38px;border-radius:9px;background:#D6D5D0"></div>
+          <div style="width:38px;height:38px;border-radius:9px;background:#A7A7A2"></div>
+          <div style="width:38px;height:38px;border-radius:9px;background:#6B6B67"></div>
+          <div style="width:38px;height:38px;border-radius:9px;background:#2A2A28"></div>
+          <div style="width:38px;height:38px;border-radius:9px;background:#0E0E0D"></div>
+        </div>
+      </div>
+      <!-- type -->
+      <div style="background:rgba(255,255,255,0.62);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.8);border-radius:18px;padding:16px 18px;box-shadow:0 8px 24px -16px rgba(0,0,0,0.4);min-width:240px">
+        <div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#8A8A86;margin-bottom:8px">Type — two voices</div>
+        <div style="font-family:-apple-system,'SF Pro Display',sans-serif;font-size:21px;font-weight:600;letter-spacing:-0.4px">SF Pro · the interface</div>
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:21px;font-weight:600;margin-top:2px">Space Grotesk · the Word</div>
+      </div>
+      <!-- material -->
+      <div style="background:rgba(255,255,255,0.62);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.8);border-radius:18px;padding:16px 18px;box-shadow:0 8px 24px -16px rgba(0,0,0,0.4);max-width:300px">
+        <div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#8A8A86;margin-bottom:8px">Liquid Glass</div>
+        <div style="font-size:13px;color:#5a5a58;line-height:1.45">Chrome floats and refracts — translucent, blurred, capsule-shaped. Content stays opaque and quiet beneath it.</div>
+      </div>
+    </div>
+
+    <div style="height:1px;background:#D5D4CF;margin:34px 0 8px"></div>
+
+    <!-- ===== FRAMES ===== -->
+    <div style="display:flex;gap:40px;flex-wrap:wrap;margin-top:30px;justify-content:center">
+
+      <!-- ================= SCREEN 1 — TODAY ================= -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:14px">
+        <div style="width:300px;height:632px;background:#1A1A1C;border-radius:50px;padding:7px;box-shadow:0 30px 60px -24px rgba(0,0,0,0.5)">
+          <div style="width:100%;height:100%;border-radius:43px;overflow:hidden;position:relative;background:linear-gradient(180deg,#FBFBF9,#ECEBE6)">
+            <!-- status bar -->
+            <div style="height:46px;display:flex;align-items:center;justify-content:space-between;padding:0 26px;position:relative;z-index:6">
+              <div style="font-size:15px;font-weight:600;color:#0E0E0D">9:41</div>
+              <div style="position:absolute;left:50%;top:11px;transform:translateX(-50%);width:88px;height:27px;background:#000;border-radius:99px"></div>
+              <div style="display:flex;align-items:center;gap:6px">
+                <svg width="18" height="12" viewBox="0 0 18 12" fill="#0E0E0D"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="4.5" width="3" height="7.5" rx="1"/><rect x="10" y="2" width="3" height="10" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1" opacity="0.35"/></svg>
+                <svg width="17" height="12" viewBox="0 0 17 12" fill="none" stroke="#0E0E0D" stroke-width="1.4"><path d="M1 4.2C3.4 2 6 1 8.5 1S13.6 2 16 4.2"/><path d="M3.6 6.8C5.1 5.5 6.8 5 8.5 5s3.4.5 4.9 1.8"/><path d="M6.2 9.3c.7-.6 1.5-.9 2.3-.9s1.6.3 2.3.9"/></svg>
+                <div style="display:flex;align-items:center;gap:1px"><div style="width:22px;height:11px;border:1.3px solid #0E0E0D;border-radius:3px;padding:1.3px;box-sizing:border-box"><div style="width:80%;height:100%;background:#0E0E0D;border-radius:1px"></div></div><div style="width:1.5px;height:4px;background:#0E0E0D;border-radius:1px"></div></div>
+              </div>
+            </div>
+
+            <!-- scrollable content -->
+            <div style="position:absolute;inset:46px 0 0;overflow:hidden;padding:6px 20px 92px">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start">
+                <div>
+                  <div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#8A8A86;font-weight:600">Tuesday · June 16</div>
+                  <div style="font-family:-apple-system,'SF Pro Display',sans-serif;font-size:32px;font-weight:700;letter-spacing:-1px;color:#0E0E0D;margin-top:1px">Today</div>
+                </div>
+                <div style="width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,0.6);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.8);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px -8px rgba(0,0,0,0.4)">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0E0E0D" stroke-width="1.7"><circle cx="12" cy="12" r="3.1"/><path d="M12 2.6v3M12 18.4v3M21.4 12h-3M5.6 12h-3M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1M18.4 18.4l-2.1-2.1M7.7 7.7 5.6 5.6"/></svg>
+                </div>
+              </div>
+
+              <!-- hero guide card -->
+              <div style="margin-top:18px;background:#FFFFFF;border-radius:26px;padding:22px 20px;box-shadow:0 12px 30px -18px rgba(0,0,0,0.35);border:1px solid rgba(0,0,0,0.04)">
+                <div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#8A8A86;font-weight:600">Morning Prayer · ready</div>
+                <div style="font-family:'Space Grotesk',sans-serif;font-size:27px;font-weight:600;line-height:1.08;letter-spacing:-0.5px;color:#0E0E0D;margin-top:9px">Today's guide<br>is ready.</div>
+                <div style="font-size:13px;color:#6B6B67;margin-top:8px">Psalm 23 · 7 min · 5 prayers</div>
+                <div style="margin-top:18px;background:#0E0E0D;border-radius:99px;height:52px;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 10px 24px -10px rgba(14,14,13,0.7)">
+                  <div style="width:0;height:0;border-top:8px solid transparent;border-bottom:8px solid transparent;border-left:14px solid #fff;margin-left:2px"></div>
+                  <span style="font-size:16px;font-weight:600;color:#fff;letter-spacing:0.2px">Begin guide</span>
+                </div>
+              </div>
+
+              <!-- section -->
+              <div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#8A8A86;font-weight:600;margin:24px 6px 9px">Praying today</div>
+              <div style="background:#FFFFFF;border-radius:20px;overflow:hidden;box-shadow:0 8px 22px -18px rgba(0,0,0,0.3);border:1px solid rgba(0,0,0,0.04)">
+                <div style="display:flex;align-items:center;gap:12px;padding:13px 16px">
+                  <div style="flex:1;min-width:0"><div style="font-size:15px;font-weight:500;color:#0E0E0D">Eric's career choice</div><div style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#A7A7A2;margin-top:2px">Eric Tan · weekly</div></div>
+                  <span style="color:#C7C7C2;font-size:18px">›</span>
+                </div>
+                <div style="height:1px;background:#EDECE8;margin-left:16px"></div>
+                <div style="display:flex;align-items:center;gap:12px;padding:13px 16px">
+                  <div style="flex:1;min-width:0"><div style="font-size:15px;font-weight:500;color:#0E0E0D">Mom's health</div><div style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#A7A7A2;margin-top:2px">Linda · daily</div></div>
+                  <span style="color:#C7C7C2;font-size:18px">›</span>
+                </div>
+                <div style="height:1px;background:#EDECE8;margin-left:16px"></div>
+                <div style="display:flex;align-items:center;gap:12px;padding:13px 16px">
+                  <div style="flex:1;min-width:0"><div style="font-size:15px;font-weight:500;color:#0E0E0D">The Smiths' move</div><div style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#A7A7A2;margin-top:2px">The Smiths · monthly</div></div>
+                  <span style="color:#C7C7C2;font-size:18px">›</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- floating glass tab bar -->
+            <div style="position:absolute;left:14px;right:14px;bottom:13px;height:62px;border-radius:31px;background:rgba(250,250,248,0.7);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);border:1px solid rgba(255,255,255,0.85);box-shadow:0 10px 30px -10px rgba(0,0,0,0.22),inset 0 1px 0 rgba(255,255,255,0.9);display:flex;align-items:center;justify-content:space-around;z-index:5">
+              <div style="display:flex;flex-direction:column;align-items:center;gap:3px"><div style="width:34px;height:26px;border-radius:13px;background:#0E0E0D;display:flex;align-items:center;justify-content:center"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linejoin="round" stroke-linecap="round"><path d="M4 11.5 12 5l8 6.5"/><path d="M5.6 10.4V19h12.8v-8.6"/></svg></div></div>
+              <div style="display:flex;flex-direction:column;align-items:center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9A9A96" stroke-width="1.8"><circle cx="12" cy="8" r="3.2"/><path d="M5.5 19c0-3.4 2.9-5.6 6.5-5.6s6.5 2.2 6.5 5.6"/></svg></div>
+              <div style="display:flex;flex-direction:column;align-items:center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9A9A96" stroke-width="1.8" stroke-linejoin="round"><path d="M12 4c2.2 3 4 4.4 4 8a4 4 0 0 1-8 0c0-2.2 1-3.4 2.2-4.6.1 1.2.8 1.9 1.4 2.2C12.2 8.6 10.6 6.4 12 4z"/></svg></div>
+              <div style="display:flex;flex-direction:column;align-items:center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9A9A96" stroke-width="1.8" stroke-linejoin="round"><path d="M5.5 5.5A1.5 1.5 0 0 1 7 4h11v15.5H7a1.5 1.5 0 0 0-1.5 1.5z"/><path d="M5.5 19.5A1.5 1.5 0 0 1 7 18h11"/></svg></div>
+            </div>
+          </div>
+        </div>
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:14px;color:#8A8A86">Today — word-first home</div>
+      </div>
+
+      <!-- ================= SCREEN 2 — LISTENING (BESPOKE) ================= -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:14px">
+        <div style="width:300px;height:632px;background:#1A1A1C;border-radius:50px;padding:7px;box-shadow:0 30px 60px -24px rgba(0,0,0,0.5)">
+          <div style="width:100%;height:100%;border-radius:43px;overflow:hidden;position:relative;background:radial-gradient(120% 70% at 50% 18%,#1A1B22,#0A0A0D 70%)">
+            <!-- status bar -->
+            <div style="height:46px;display:flex;align-items:center;justify-content:space-between;padding:0 26px;position:relative;z-index:6">
+              <div style="font-size:15px;font-weight:600;color:#EDEDF0">9:41</div>
+              <div style="position:absolute;left:50%;top:11px;transform:translateX(-50%);width:88px;height:27px;background:#000;border-radius:99px"></div>
+              <div style="display:flex;align-items:center;gap:6px">
+                <svg width="18" height="12" viewBox="0 0 18 12" fill="#EDEDF0"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="4.5" width="3" height="7.5" rx="1"/><rect x="10" y="2" width="3" height="10" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1" opacity="0.4"/></svg>
+                <svg width="17" height="12" viewBox="0 0 17 12" fill="none" stroke="#EDEDF0" stroke-width="1.4"><path d="M1 4.2C3.4 2 6 1 8.5 1S13.6 2 16 4.2"/><path d="M3.6 6.8C5.1 5.5 6.8 5 8.5 5s3.4.5 4.9 1.8"/><path d="M6.2 9.3c.7-.6 1.5-.9 2.3-.9s1.6.3 2.3.9"/></svg>
+                <div style="display:flex;align-items:center;gap:1px"><div style="width:22px;height:11px;border:1.3px solid #EDEDF0;border-radius:3px;padding:1.3px;box-sizing:border-box"><div style="width:80%;height:100%;background:#EDEDF0;border-radius:1px"></div></div><div style="width:1.5px;height:4px;background:#EDEDF0;border-radius:1px"></div></div>
+              </div>
+            </div>
+
+            <!-- header row -->
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 24px 0;color:#9A9AA2">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9A9AA2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9.5 12 15l6-5.5"/></svg>
+              <div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase">Scripture · 5 of 12</div>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9A9AA2" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+            </div>
+
+            <!-- center -->
+            <div style="position:absolute;inset:120px 0 150px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 30px;text-align:center">
+              <div style="width:188px;height:188px;border-radius:50%;border:1px solid rgba(255,255,255,0.16);display:flex;align-items:center;justify-content:center;animation:breathe 7s ease-in-out infinite;background:radial-gradient(circle at 50% 38%,rgba(150,156,180,0.4),rgba(20,20,28,0.05))">
+                <div style="width:138px;height:138px;border-radius:50%;border:1px solid rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 40%,rgba(190,196,220,0.22),transparent)">
+                  <div style="font-family:'Space Grotesk',sans-serif;font-size:21px;font-weight:500;color:#EEF;letter-spacing:0.3px">Psalm 23</div>
+                </div>
+              </div>
+              <div style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:400;color:#E8E8F0;margin-top:34px;line-height:1.32">"The Lord is my<br>shepherd, I shall<br>not want."</div>
+            </div>
+
+            <!-- transport -->
+            <div style="position:absolute;left:0;right:0;bottom:30px;padding:0 28px">
+              <div style="height:3px;background:rgba(255,255,255,0.16);border-radius:99px;position:relative"><div style="position:absolute;left:0;top:0;height:3px;width:42%;background:#E8E8F0;border-radius:99px"></div><div style="position:absolute;left:42%;top:-3px;width:9px;height:9px;border-radius:50%;background:#fff;transform:translateX(-50%)"></div></div>
+              <div style="display:flex;justify-content:space-between;font-size:11px;color:#8A8A96;margin-top:8px"><span>2:54</span><span>7:01</span></div>
+              <div style="display:flex;align-items:center;justify-content:center;gap:30px;margin-top:18px">
+                <div style="display:flex;flex-direction:column;align-items:center;color:#C6C6D0"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#C6C6D0" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 5 12l6 7"/><path d="M18 5l-6 7 6 7" opacity="0.5"/></svg><span style="font-size:9px;margin-top:1px">15</span></div>
+                <div style="width:74px;height:74px;border-radius:50%;background:rgba(255,255,255,0.95);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;box-shadow:0 12px 30px -8px rgba(0,0,0,0.5)"><div style="display:flex;gap:6px"><span style="width:7px;height:26px;background:#0A0A0D;border-radius:2px"></span><span style="width:7px;height:26px;background:#0A0A0D;border-radius:2px"></span></div></div>
+                <div style="display:flex;flex-direction:column;align-items:center;color:#C6C6D0"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#C6C6D0" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M13 5l6 7-6 7"/><path d="M6 5l6 7-6 7" opacity="0.5"/></svg><span style="font-size:9px;margin-top:1px">15</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:14px;color:#8A8A86">Listening — the one bespoke screen</div>
+      </div>
+
+      <!-- ================= SCREEN 3 — POST-SESSION REVIEW ================= -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:14px">
+        <div style="width:300px;height:632px;background:#1A1A1C;border-radius:50px;padding:7px;box-shadow:0 30px 60px -24px rgba(0,0,0,0.5)">
+          <div style="width:100%;height:100%;border-radius:43px;overflow:hidden;position:relative;background:linear-gradient(180deg,#FBFBF9,#ECEBE6)">
+            <!-- sheet grabber -->
+            <div style="height:22px;display:flex;align-items:flex-end;justify-content:center;padding-bottom:6px"><div style="width:38px;height:5px;border-radius:99px;background:#C7C7C2"></div></div>
+            <div style="position:absolute;inset:22px 0 0;overflow:hidden;padding:8px 20px 24px">
+              <div style="text-align:center;margin-top:4px">
+                <div style="font-family:'Space Grotesk',sans-serif;font-size:40px;font-weight:700;letter-spacing:-1px;color:#0E0E0D">Amen.</div>
+                <div style="font-size:14px;color:#6B6B67;margin-top:2px">Anything answered today?</div>
+              </div>
+
+              <!-- topic — answered, note open -->
+              <div style="margin-top:20px;background:#FFFFFF;border-radius:22px;padding:16px;box-shadow:0 10px 26px -18px rgba(0,0,0,0.35);border:1px solid rgba(0,0,0,0.04)">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+                  <div style="font-size:15px;font-weight:500;color:#0E0E0D;flex:1">Eric's career choice</div>
+                  <div style="width:46px;height:28px;border-radius:99px;background:#0E0E0D;position:relative;flex:none"><div style="position:absolute;right:2px;top:2px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.3)"></div></div>
+                </div>
+                <div style="font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:#8A8A86;margin:14px 0 7px">How did God answer this?</div>
+                <div style="background:#F4F3EF;border-radius:14px;padding:12px;font-size:14px;color:#0E0E0D;line-height:1.4;min-height:48px">He got the offer at the firm he prayed about — started Monday.<span style="display:inline-block;width:2px;height:15px;background:#0E0E0D;vertical-align:-2px;margin-left:1px"></span></div>
+              </div>
+
+              <!-- topic — continue -->
+              <div style="margin-top:13px;background:#FFFFFF;border-radius:22px;padding:16px;box-shadow:0 8px 22px -18px rgba(0,0,0,0.3);border:1px solid rgba(0,0,0,0.04);display:flex;align-items:center;justify-content:space-between;gap:10px">
+                <div style="font-size:15px;font-weight:500;color:#0E0E0D;flex:1">Mom's health</div>
+                <div style="width:46px;height:28px;border-radius:99px;background:#E0DFDA;position:relative;flex:none"><div style="position:absolute;left:2px;top:2px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.2)"></div></div>
+              </div>
+              <div style="margin-top:13px;background:#FFFFFF;border-radius:22px;padding:16px;box-shadow:0 8px 22px -18px rgba(0,0,0,0.3);border:1px solid rgba(0,0,0,0.04);display:flex;align-items:center;justify-content:space-between;gap:10px">
+                <div style="font-size:15px;font-weight:500;color:#0E0E0D;flex:1">The Smiths' move</div>
+                <div style="width:46px;height:28px;border-radius:99px;background:#E0DFDA;position:relative;flex:none"><div style="position:absolute;left:2px;top:2px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.2)"></div></div>
+              </div>
+            </div>
+
+            <!-- floating Amen -->
+            <div style="position:absolute;left:20px;right:20px;bottom:16px;z-index:5">
+              <div style="background:#0E0E0D;border-radius:99px;height:56px;display:flex;align-items:center;justify-content:center;box-shadow:0 14px 34px -12px rgba(14,14,13,0.7)"><span style="font-family:'Space Grotesk',sans-serif;font-size:19px;font-weight:600;color:#fff;letter-spacing:0.3px">Amen</span></div>
+            </div>
+          </div>
+        </div>
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:14px;color:#8A8A86">Post-session — answered &amp; Amen</div>
+      </div>
+
+      <!-- ================= SCREEN 4 — PRAYER LIST ================= -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:14px">
+        <div style="width:300px;height:632px;background:#1A1A1C;border-radius:50px;padding:7px;box-shadow:0 30px 60px -24px rgba(0,0,0,0.5)">
+          <div style="width:100%;height:100%;border-radius:43px;overflow:hidden;position:relative;background:linear-gradient(180deg,#FBFBF9,#ECEBE6)">
+            <!-- status bar -->
+            <div style="height:46px;display:flex;align-items:center;justify-content:space-between;padding:0 26px;position:relative;z-index:6">
+              <div style="font-size:15px;font-weight:600;color:#0E0E0D">9:41</div>
+              <div style="position:absolute;left:50%;top:11px;transform:translateX(-50%);width:88px;height:27px;background:#000;border-radius:99px"></div>
+              <div style="display:flex;align-items:center;gap:6px">
+                <svg width="18" height="12" viewBox="0 0 18 12" fill="#0E0E0D"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="4.5" width="3" height="7.5" rx="1"/><rect x="10" y="2" width="3" height="10" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1" opacity="0.35"/></svg>
+                <svg width="17" height="12" viewBox="0 0 17 12" fill="none" stroke="#0E0E0D" stroke-width="1.4"><path d="M1 4.2C3.4 2 6 1 8.5 1S13.6 2 16 4.2"/><path d="M3.6 6.8C5.1 5.5 6.8 5 8.5 5s3.4.5 4.9 1.8"/><path d="M6.2 9.3c.7-.6 1.5-.9 2.3-.9s1.6.3 2.3.9"/></svg>
+                <div style="display:flex;align-items:center;gap:1px"><div style="width:22px;height:11px;border:1.3px solid #0E0E0D;border-radius:3px;padding:1.3px;box-sizing:border-box"><div style="width:80%;height:100%;background:#0E0E0D;border-radius:1px"></div></div><div style="width:1.5px;height:4px;background:#0E0E0D;border-radius:1px"></div></div>
+              </div>
+            </div>
+
+            <div style="position:absolute;inset:46px 0 0;overflow:hidden;padding:6px 20px 24px">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <div style="font-family:-apple-system,'SF Pro Display',sans-serif;font-size:32px;font-weight:700;letter-spacing:-1px;color:#0E0E0D">Prayer</div>
+                <div style="width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,0.6);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.8);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px -8px rgba(0,0,0,0.4)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0E0E0D" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></div>
+              </div>
+
+              <!-- search -->
+              <div style="margin-top:14px;height:38px;border-radius:12px;background:rgba(120,120,120,0.1);display:flex;align-items:center;gap:7px;padding:0 12px">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A8A86" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
+                <span style="font-size:14px;color:#9A9A96">Search topics</span>
+              </div>
+
+              <!-- glass segmented control -->
+              <div style="margin-top:14px;height:36px;border-radius:11px;background:rgba(120,120,120,0.12);padding:3px;display:flex;gap:2px">
+                <div style="flex:1;border-radius:9px;background:#fff;box-shadow:0 2px 6px -2px rgba(0,0,0,0.18);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:#0E0E0D">All</div>
+                <div style="flex:1;display:flex;align-items:center;justify-content:center;font-size:13px;color:#8A8A86">Person</div>
+                <div style="flex:1;display:flex;align-items:center;justify-content:center;font-size:13px;color:#8A8A86">Group</div>
+                <div style="flex:1;display:flex;align-items:center;justify-content:center;font-size:13px;color:#8A8A86">General</div>
+              </div>
+
+              <!-- list -->
+              <div style="margin-top:16px;background:#FFFFFF;border-radius:20px;overflow:hidden;box-shadow:0 8px 22px -18px rgba(0,0,0,0.3);border:1px solid rgba(0,0,0,0.04)">
+                <div style="display:flex;align-items:center;gap:12px;padding:13px 16px"><div style="flex:1;min-width:0"><div style="font-size:15px;font-weight:500;color:#0E0E0D">Pray for Eric's career choice</div><div style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#A7A7A2;margin-top:2px">Eric Tan · next Thu</div></div><span style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#0E0E0D;border:1px solid #0E0E0D;border-radius:99px;padding:2px 8px">weekly</span></div>
+                <div style="height:1px;background:#EDECE8;margin-left:16px"></div>
+                <div style="display:flex;align-items:center;gap:12px;padding:13px 16px"><div style="flex:1;min-width:0"><div style="font-size:15px;font-weight:500;color:#0E0E0D">Pray for Mom's health</div><div style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#A7A7A2;margin-top:2px">Linda · today</div></div><span style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#0E0E0D;border:1px solid #0E0E0D;border-radius:99px;padding:2px 8px">daily</span></div>
+                <div style="height:1px;background:#EDECE8;margin-left:16px"></div>
+                <div style="display:flex;align-items:center;gap:12px;padding:13px 16px"><div style="flex:1;min-width:0"><div style="font-size:15px;font-weight:500;color:#0E0E0D">Pray for The Smiths' move</div><div style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#A7A7A2;margin-top:2px">The Smiths · Jun 28</div></div><span style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#6B6B67;border:1px solid #C7C7C2;border-radius:99px;padding:2px 8px">monthly</span></div>
+                <div style="height:1px;background:#EDECE8;margin-left:16px"></div>
+                <div style="display:flex;align-items:center;gap:12px;padding:13px 16px"><div style="flex:1;min-width:0"><div style="font-size:15px;font-weight:500;color:#0E0E0D">Pray for our church's plant</div><div style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#A7A7A2;margin-top:2px">General · next Sat</div></div><span style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#0E0E0D;border:1px solid #0E0E0D;border-radius:99px;padding:2px 8px">weekly</span></div>
+              </div>
+            </div>
+
+            <!-- floating glass tab bar (Prayer active) -->
+            <div style="position:absolute;left:14px;right:14px;bottom:13px;height:62px;border-radius:31px;background:rgba(250,250,248,0.7);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);border:1px solid rgba(255,255,255,0.85);box-shadow:0 10px 30px -10px rgba(0,0,0,0.22),inset 0 1px 0 rgba(255,255,255,0.9);display:flex;align-items:center;justify-content:space-around;z-index:5">
+              <div style="display:flex;flex-direction:column;align-items:center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9A9A96" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M4 11.5 12 5l8 6.5"/><path d="M5.6 10.4V19h12.8v-8.6"/></svg></div>
+              <div style="display:flex;flex-direction:column;align-items:center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9A9A96" stroke-width="1.8"><circle cx="12" cy="8" r="3.2"/><path d="M5.5 19c0-3.4 2.9-5.6 6.5-5.6s6.5 2.2 6.5 5.6"/></svg></div>
+              <div style="display:flex;flex-direction:column;align-items:center"><div style="width:34px;height:26px;border-radius:13px;background:#0E0E0D;display:flex;align-items:center;justify-content:center"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linejoin="round"><path d="M12 4c2.2 3 4 4.4 4 8a4 4 0 0 1-8 0c0-2.2 1-3.4 2.2-4.6.1 1.2.8 1.9 1.4 2.2C12.2 8.6 10.6 6.4 12 4z"/></svg></div></div>
+              <div style="display:flex;flex-direction:column;align-items:center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9A9A96" stroke-width="1.8" stroke-linejoin="round"><path d="M5.5 5.5A1.5 1.5 0 0 1 7 4h11v15.5H7a1.5 1.5 0 0 0-1.5 1.5z"/><path d="M5.5 19.5A1.5 1.5 0 0 1 7 18h11"/></svg></div>
+            </div>
+          </div>
+        </div>
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:14px;color:#8A8A86">Prayer — grouped list &amp; glass filter</div>
+      </div>
+
+    </div>
+
+    <div style="text-align:center;font-family:'Space Grotesk',sans-serif;font-size:14px;letter-spacing:0.5px;color:#9a9a98;margin-top:46px">iOS 27 Liquid Glass × Iconoclast · native chrome, graphite restraint, the Word in Space Grotesk</div>
+
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

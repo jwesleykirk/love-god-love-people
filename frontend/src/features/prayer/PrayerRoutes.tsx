@@ -144,7 +144,7 @@ export function PrayerDetailRoute() {
         <p className="muted">{topic.target_frequency}</p>
         {topic.person && <p>For {topic.person.name}</p>}
         {topic.group && <p>For group {topic.group.name}</p>}
-        {topic.answered_date && <p className="pill pill--success">Answered {topic.answered_date}</p>}
+        {topic.answered_date && <p className="pill">Answered {topic.answered_date}</p>}
         {topic.answer_note && <p>{topic.answer_note}</p>}
       </div>
       <h2>History</h2>

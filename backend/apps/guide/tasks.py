@@ -19,10 +19,21 @@ def compile_daily_guides():
     return True
 
 
-def generate_topic_narration(topic_id: int):
+def generate_topic_narration(topic_id: int, force: bool = False):
     from apps.guide.services.narration import generate_topic_narration as _generate
 
-    _generate(topic_id)
+    _generate(topic_id, force=force)
+
+
+def regenerate_todays_guide(owner_id: int):
+    from django.contrib.auth import get_user_model
+
+    from apps.guide.services.regenerate import regenerate_todays_guide_for_owner
+
+    User = get_user_model()
+    owner = User.objects.get(pk=owner_id)
+    regenerate_todays_guide_for_owner(owner)
+    return True
 
 
 def generate_liturgy_segments(force: bool = False):

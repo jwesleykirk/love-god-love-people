@@ -12,23 +12,27 @@ export function JournalRoute() {
   }, []);
 
   return (
-    <main className="container stack-lg">
-      <h1>Journal</h1>
-      <p className="muted section-sub">Prayer session history</p>
-      <ul className="bare">
+    <main className="container">
+      <header className="page-header">
+        <h1 className="large-title">Journal</h1>
+      </header>
+      <p className="section-sub">Prayer session history</p>
+
+      <div className="grouped-list">
         {sessions.map((s) => (
-          <li key={s.id}>
-            <Link to={`/journal/${s.id}`}>
-              {s.session_date}
-            </Link>
-            <span className="muted">
-              {" "}· {s.topic_count ?? 0} topics
-              {s.answered_count ? ` · ${s.answered_count} answered` : ""}
-              {s.completed_at ? " · completed" : ""}
-            </span>
-          </li>
+          <Link key={s.id} to={`/journal/${s.id}`} className="grouped-list-row">
+            <div style={{ flex: 1 }}>
+              <div className="grouped-list-title">{s.session_date}</div>
+              <div className="grouped-list-meta">
+                {s.topic_count ?? 0} topics
+                {s.answered_count ? ` · ${s.answered_count} answered` : ""}
+                {s.completed_at ? " · completed" : ""}
+              </div>
+            </div>
+            <span className="grouped-list-chevron" aria-hidden>›</span>
+          </Link>
         ))}
-      </ul>
+      </div>
     </main>
   );
 }
@@ -46,16 +50,22 @@ export function JournalDetailRoute() {
   return (
     <main className="container stack-lg">
       <Link to="/journal" className="session-back">← Journal</Link>
-      <h1>{session.session_date}</h1>
-      <ul className="bare">
+      <h1 className="large-title">{session.session_date}</h1>
+      <div className="grouped-list">
         {(session.logs ?? []).map((log) => (
-          <li key={log.id}>
-            {log.topic_narration}
-            {log.answered && " · answered"}
-            {log.answer_note && ` — ${log.answer_note}`}
-          </li>
+          <div key={log.id} className="grouped-list-row" style={{ cursor: "default" }}>
+            <div style={{ flex: 1 }}>
+              <div className="grouped-list-title">{log.topic_narration}</div>
+              {(log.answered || log.answer_note) && (
+                <div className="grouped-list-meta">
+                  {log.answered ? "answered" : ""}
+                  {log.answer_note ? ` — ${log.answer_note}` : ""}
+                </div>
+              )}
+            </div>
+          </div>
         ))}
-      </ul>
+      </div>
     </main>
   );
 }

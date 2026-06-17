@@ -60,7 +60,7 @@ cd backend && uv run python manage.py setup_guide
 
 ## Design system
 
-See `_docs/design-system.md` and `frontend/src/styles/tokens.css`. Always use CSS variables; headings serif, body sans; pill buttons.
+See `_docs/design-system.md` and `frontend/src/styles/tokens.css`. Graphite-only palette, SF Pro interface + Space Grotesk for devotional moments, Liquid Glass floating chrome.
 
 ## Navigation (4 tabs)
 
