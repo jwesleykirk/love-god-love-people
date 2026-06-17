@@ -115,3 +115,83 @@ class PlaylistBuilderTests(TestCase):
         topic_clips = [c for c in playlist if c["kind"] == "topic"]
         self.assertEqual(topic_clips[0]["topic_id"], topic.id)
         self.assertTrue(all(c["audio_url"].startswith("/api/guide/audio/") for c in playlist))
+
+
+class SessionCompilerTests(TestCase):
+    def setUp(self):
+        import tempfile
+
+        from django.contrib.auth import get_user_model
+
+        from apps.dbr.models import ReadingDay
+
+        User = get_user_model()
+        self.user = User.objects.create_user(username="wesley@local", email="wesley@local")
+        self.tmpdir = tempfile.mkdtemp()
+        self.reading_audio = f"{self.tmpdir}/dbr.mp3"
+        with open(self.reading_audio, "wb") as f:
+            f.write(b"mp3")
+        ReadingDay.objects.create(
+            guid="compile-guid",
+            title="Genesis 1",
+            pub_date=timezone.now(),
+            audio_cached_path=self.reading_audio,
+        )
+
+    @patch("apps.guide.services.compiler._run_ffmpeg_concat")
+    @patch("apps.guide.services.compiler.session_audio_path")
+    @patch("apps.guide.services.compiler.ensure_silence")
+    @patch("apps.guide.services.compiler.segment_path")
+    @patch("apps.guide.services.compiler.topic_audio_path")
+    @patch("apps.guide.services.compiler.shutil.which")
+    def test_compile_stitches_single_session_audio(
+        self,
+        which,
+        topic_audio_path_mock,
+        segment_path_mock,
+        ensure_silence,
+        session_audio_path_mock,
+        run_ffmpeg_concat,
+    ):
+        from pathlib import Path
+
+        from apps.guide.services.compiler import compile_session_for_owner
+        from apps.prayer.models import PrayerSession
+
+        which.return_value = "/usr/bin/ffmpeg"
+        segment_file = Path(self.tmpdir) / "segment.mp3"
+        segment_file.write_bytes(b"mp3")
+        segment_path_mock.return_value = segment_file
+        silence_file = Path(self.tmpdir) / "silence.mp3"
+        silence_file.write_bytes(b"mp3")
+        ensure_silence.return_value = silence_file
+        topic_audio_path_mock.return_value = Path(self.tmpdir) / "canonical-topic.mp3"
+        output = Path(self.tmpdir) / "session.mp3"
+        session_audio_path_mock.return_value = output
+
+        def write_output(_manifest, output_path):
+            output_path.write_bytes(b"stitched")
+
+        run_ffmpeg_concat.side_effect = write_output
+
+        topic_audio = Path(self.tmpdir) / "topic.mp3"
+        topic_audio.write_bytes(b"mp3")
+        PrayerTopic.objects.create(
+            owner=self.user,
+            topic_text="health",
+            narration_text="Pray for health",
+            audio_file=str(topic_audio),
+            target_frequency=TargetFrequency.DAILY,
+        )
+        PrayerSession.objects.create(
+            owner=self.user,
+            session_date=timezone.localdate(),
+            playlist=[{"id": "old-playlist-clip"}],
+        )
+
+        session = compile_session_for_owner(self.user, timezone.localdate())
+
+        self.assertEqual(session.audio_file, str(output))
+        self.assertEqual(session.playlist, [])
+        self.assertTrue(output.exists())
+        run_ffmpeg_concat.assert_called_once()

@@ -1,8 +1,10 @@
-"""Daily guide compiler — assembles clip playlists from segments, DBR, and topics."""
+"""Daily guide compiler — stitches segments, DBR, and topic audio via ffmpeg."""
 from __future__ import annotations
 
 import logging
 import shutil
+import subprocess
+import tempfile
 from datetime import date, timedelta
 from pathlib import Path
 
@@ -10,18 +12,59 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 
 from apps.dbr.models import ReadingDay
-from apps.prayer.models import BuildStatus, PrayerLog, PrayerSession
+from apps.prayer.models import BuildStatus, PrayerLog, PrayerSession, PrayerTopic
 from apps.guide.services.build_log import BuildLogger
-from apps.guide.services.playlist import build_session_playlist
+from apps.guide.services.paths import (
+    segment_path,
+    session_audio_path,
+    topic_audio_path,
+)
 from apps.guide.services.scheduler import select_topics_for_session
+from apps.guide.services.segments import PAUSE_AFTER_SEGMENT_KEYS, POST_DBR_KEYS, PRE_DBR_KEYS
+from apps.guide.services.silence import DEFAULT_PAUSE_SECONDS, ensure_silence
 
 logger = logging.getLogger(__name__)
+
+
+def _run_ffmpeg_concat(manifest: Path, output: Path) -> None:
+    cmd = [
+        "ffmpeg",
+        "-y",
+        "-f",
+        "concat",
+        "-safe",
+        "0",
+        "-i",
+        str(manifest),
+        "-c",
+        "copy",
+        str(output),
+    ]
+    result = subprocess.run(cmd, capture_output=True, text=True, check=False)
+    if result.returncode != 0:
+        raise RuntimeError(result.stderr or result.stdout or "ffmpeg failed")
 
 
 def _ensure_ffmpeg(log: BuildLogger) -> None:
     if not shutil.which("ffmpeg"):
         log.error("ffmpeg_check", error="ffmpeg not found on PATH")
         raise RuntimeError("ffmpeg not found on PATH")
+
+
+def _append_pause(audio_paths: list[Path], seconds: int = DEFAULT_PAUSE_SECONDS) -> None:
+    audio_paths.append(ensure_silence(seconds))
+
+
+def _ensure_topic_audio(topic: PrayerTopic, log: BuildLogger) -> Path:
+    path = topic_audio_path(topic.id)
+    if path.exists():
+        log.ok("topic_audio", topic_id=topic.id, path=str(path))
+        return path
+    if topic.audio_file and Path(topic.audio_file).exists():
+        log.ok("topic_audio", topic_id=topic.id, path=topic.audio_file)
+        return Path(topic.audio_file)
+    log.error("topic_audio", topic_id=topic.id, error="missing audio file")
+    raise RuntimeError(f"Missing audio for prayer topic {topic.id}")
 
 
 def compile_session_for_owner(owner, session_date: date | None = None) -> PrayerSession:
@@ -47,10 +90,53 @@ def compile_session_for_owner(owner, session_date: date | None = None) -> Prayer
             log.error("dbr_check", error="no reading_day row")
             raise RuntimeError("No reading day available")
 
+        dbr_path = reading.audio_cached_path
+        if not dbr_path or not Path(dbr_path).exists():
+            log.error("dbr_check", error="audio_cached_path missing", guid=reading.guid)
+            raise RuntimeError("DBR audio not cached")
+
+        log.ok("dbr_check", path=dbr_path, guid=reading.guid)
+
         topics = select_topics_for_session(owner, session_date)
         log.ok("schedule", topic_count=len(topics), topic_ids=[t.id for t in topics])
 
-        playlist = build_session_playlist(reading, topics, log)
+        audio_paths: list[Path] = []
+        for key in PRE_DBR_KEYS:
+            path = segment_path(key)
+            if not path.exists():
+                log.error("segment_check", key=key, error="missing segment")
+                raise RuntimeError(f"Missing segment: {key}")
+            audio_paths.append(path)
+            if key in PAUSE_AFTER_SEGMENT_KEYS:
+                _append_pause(audio_paths)
+
+        audio_paths.append(Path(dbr_path))
+
+        for key in POST_DBR_KEYS:
+            path = segment_path(key)
+            if not path.exists():
+                log.error("segment_check", key=key, error="missing segment")
+                raise RuntimeError(f"Missing segment: {key}")
+            audio_paths.append(path)
+            if key in PAUSE_AFTER_SEGMENT_KEYS:
+                _append_pause(audio_paths)
+
+        for index, topic in enumerate(topics):
+            audio_paths.append(_ensure_topic_audio(topic, log))
+            if index < len(topics) - 1:
+                _append_pause(audio_paths)
+
+        output = session_audio_path(session_date)
+        with tempfile.NamedTemporaryFile("w", suffix=".txt", delete=False) as manifest_file:
+            for path in audio_paths:
+                manifest_file.write(f"file '{path.resolve()}'\n")
+            manifest = Path(manifest_file.name)
+
+        try:
+            _run_ffmpeg_concat(manifest, output)
+            log.ok("ffmpeg", path=str(output))
+        finally:
+            manifest.unlink(missing_ok=True)
 
         session.logs.all().delete()
         for topic in topics:
@@ -60,8 +146,8 @@ def compile_session_for_owner(owner, session_date: date | None = None) -> Prayer
                 prayed_on=session_date,
             )
 
-        session.playlist = playlist
-        session.audio_file = ""
+        session.audio_file = str(output)
+        session.playlist = []
         session.build_status = BuildStatus.READY
         session.build_log = log.dump()
         session.save()
