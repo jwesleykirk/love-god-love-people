@@ -7,7 +7,6 @@ import {
   sessionAmen,
   sessionTopicAction,
 } from "../api";
-import { GuidePlayer } from "./GuidePlayer";
 import type { PrayerSession } from "../types";
 
 function isFullSession(s: PrayerSession): s is PrayerSession & { id: number } {
@@ -72,9 +71,7 @@ export function HomeRoute() {
 
   const failed = session?.build_status === "failed";
   const pending = !session?.id || session.build_status === "pending";
-  const ready =
-    session?.build_status === "ready" &&
-    ((session.playlist?.length ?? 0) > 0 || Boolean(session.audio_url));
+  const ready = session?.build_status === "ready" && Boolean(session.audio_url);
 
   return (
     <main className="container stack-lg">
@@ -105,13 +102,17 @@ export function HomeRoute() {
       {ready && !reviewMode && (
         <div className="card card--paper stack devotional-screen">
           <p className="muted">{session.session_date}</p>
-          <GuidePlayer
-            clips={session.playlist ?? []}
-            sessionDate={session.session_date}
-            legacyAudioUrl={session.audio_url}
-            onComplete={() => setReviewMode(true)}
-            onSkipToReview={() => setReviewMode(true)}
+          <audio
+            controls
+            playsInline
+            preload="metadata"
+            src={session.audio_url ?? undefined}
+            style={{ width: "100%" }}
+            onEnded={() => setReviewMode(true)}
           />
+          <button className="secondary" type="button" onClick={() => setReviewMode(true)}>
+            Skip to review
+          </button>
         </div>
       )}
 
