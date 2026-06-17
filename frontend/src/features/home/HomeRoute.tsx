@@ -134,9 +134,17 @@ export function HomeRoute() {
   const failed = session?.build_status === "failed";
   const pending = !session?.id || session.build_status === "pending";
   const ready = session?.build_status === "ready" && Boolean(session.audio_url);
+  const completed = Boolean(session?.completed_at);
 
   const { reading, prayers } = guideMeta(session, topics);
   const guideReadyLabel = ready ? "Morning Prayer · ready" : "Morning Prayer";
+
+  const finishPlayback = () => {
+    setPlaying(false);
+    if (!completed) {
+      setReviewMode(true);
+    }
+  };
 
   if (playing && ready && session) {
     return (
@@ -164,21 +172,13 @@ export function HomeRoute() {
             preload="metadata"
             src={session.audio_url ?? undefined}
             style={{ width: "100%" }}
-            onEnded={() => {
-              setPlaying(false);
-              setReviewMode(true);
-            }}
+            onEnded={finishPlayback}
           />
-          <button
-            type="button"
-            className="secondary"
-            onClick={() => {
-              setPlaying(false);
-              setReviewMode(true);
-            }}
-          >
-            Skip to review
-          </button>
+          {!completed && (
+            <button type="button" className="secondary" onClick={finishPlayback}>
+              Skip to review
+            </button>
+          )}
         </div>
       </main>
     );
@@ -274,11 +274,15 @@ export function HomeRoute() {
         </div>
       )}
 
-      {ready && !session?.completed_at && (
+      {ready && (
         <div className="hero-card">
           <div className="meta-label">{guideReadyLabel}</div>
           <p className="word-headline" style={{ marginTop: 9 }}>
-            Today's guide<br />is ready.
+            {completed ? (
+              <>Today's guide<br />is complete.</>
+            ) : (
+              <>Today's guide<br />is ready.</>
+            )}
           </p>
           <p className="muted" style={{ marginTop: 8 }}>
             {reading}
@@ -290,13 +294,9 @@ export function HomeRoute() {
             style={{ marginTop: 18 }}
             onClick={() => setPlaying(true)}
           >
-            Begin guide
+            {completed ? "Replay guide" : "Begin guide"}
           </button>
         </div>
-      )}
-
-      {session?.completed_at && (
-        <p className="muted" style={{ marginBottom: 16 }}>Session completed. See you tomorrow.</p>
       )}
 
       {prayingToday.length > 0 && (
