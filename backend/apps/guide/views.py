@@ -44,9 +44,15 @@ class GuideReadinessView(APIView):
         if not token or provided != token:
             return Response({"detail": "Forbidden"}, status=403)
 
-        from apps.guide.tasks import compile_daily_guides
+        mode = (request.data.get("mode") if isinstance(getattr(request, "data", None), dict) else "") or ""
+        if mode == "ship":
+            from apps.guide.services.ship import ship_all_guides
 
-        compile_daily_guides()
+            ship_all_guides()
+        else:
+            from apps.guide.tasks import compile_daily_guides
+
+            compile_daily_guides()
         payload = guide_readiness()
         status = 200 if payload["ready"] else 503
         return Response(payload, status=status)

@@ -32,6 +32,18 @@ class GuideReadinessOpsTests(TestCase):
         compile_daily_guides.assert_called_once()
         self.assertIn(response.status_code, {200, 503})
 
+    @override_settings(GUIDE_OPS_TOKEN="test-token")
+    @patch("apps.guide.services.ship.ship_all_guides")
+    def test_post_ship_mode_regenerates_full_guide(self, ship_all_guides):
+        response = self.client.post(
+            "/api/guide/readiness/",
+            {"mode": "ship"},
+            format="json",
+            HTTP_X_GUIDE_OPS_TOKEN="test-token",
+        )
+        ship_all_guides.assert_called_once()
+        self.assertIn(response.status_code, {200, 503})
+
 
 class RegenerateTodayTests(TestCase):
     def setUp(self):
