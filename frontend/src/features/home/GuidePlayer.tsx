@@ -166,6 +166,13 @@ export function GuidePlayer({
       }
     }
 
+    syncIndex(0);
+    void loadClip(0, false);
+  }, [loadClip, playlistMode, syncIndex]);
+
+  useEffect(() => {
+    if (!playlistMode || !("mediaSession" in navigator)) return;
+
     const handlers: Array<[MediaSessionAction, () => void]> = [
       ["play", () => void play()],
       ["pause", () => pause()],
@@ -181,8 +188,6 @@ export function GuidePlayer({
       }
     }
 
-    void loadClip(0, false);
-
     return () => {
       for (const [action] of handlers) {
         try {
@@ -192,7 +197,7 @@ export function GuidePlayer({
         }
       }
     };
-  }, [loadClip, nextClip, pause, play, playlistMode, prevClip]);
+  }, [nextClip, pause, play, playlistMode, prevClip]);
 
   useEffect(() => {
     const audio = audioRef.current;
