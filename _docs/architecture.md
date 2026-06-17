@@ -25,9 +25,9 @@ Single Railway service: Django API + React SPA (WhiteNoise) + Django-Q2 worker. 
   sessions/     # compiled single-file guides (rotated after 3 days)
 ```
 
-Daily compile stitches the fixed liturgy segments, DBR reading, reflection pauses, and prayer topic audio into one `sessions/*.mp3` file referenced by `PrayerSession.audio_file`.
+Daily compile stitches the fixed liturgy segments, DBR reading, reflection pauses, and prayer topic audio into one `sessions/*.mp3` file referenced by `PrayerSession.audio_file`. Bundled background music (`apps/guide/assets/Sovereign.mp3`) loops quietly under the full session via ffmpeg mix.
 
-Compile inserts 10-second silence after reflective liturgy prompts and between prayer topics.
+Compile inserts variable-length silence after liturgy prompts (10–20s per step) and 20-second silence between prayer topics.
 
 ## Background jobs (django-q2)
 

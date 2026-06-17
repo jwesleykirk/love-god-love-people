@@ -5,7 +5,7 @@ from django.utils import timezone
 from rest_framework.test import APIClient
 
 from apps.guide.services.scheduler import select_topics_for_session
-from apps.guide.services.segments import PAUSE_AFTER_SEGMENT_KEYS, POST_DBR_KEYS
+from apps.guide.services.segments import POST_DBR_KEYS, PRE_DBR_KEYS
 from apps.prayer.models import PrayerTopic, TargetFrequency
 
 
@@ -49,15 +49,23 @@ class RegenerateTodayTests(TestCase):
 
 
 class SegmentPauseTests(TestCase):
-    def test_reflection_prompts_pause_after_playback(self):
-        reflection_keys = {
-            "goodness_truth_beauty",
-            "reading_challenges",
-            "help_today",
+    def test_pause_map_matches_liturgy_spec(self):
+        expected = {
+            "opening_attentive": 10,
+            "love_him_reading": 15,
+            "understand_obey": 15,
+            "love_others": 15,
+            "reflect_god": 15,
+            "confess_shortcomings": 20,
+            "ask_mercy": 10,
+            "pray_what_matters": 10,
         }
-        self.assertEqual(PAUSE_AFTER_SEGMENT_KEYS, reflection_keys)
-        for key in PAUSE_AFTER_SEGMENT_KEYS:
-            self.assertIn(key, POST_DBR_KEYS)
+        from apps.guide.services.segments import PAUSE_AFTER_SEGMENT, TOPIC_PAUSE_SECONDS
+
+        self.assertEqual(PAUSE_AFTER_SEGMENT, expected)
+        self.assertEqual(TOPIC_PAUSE_SECONDS, 20)
+        for key in PAUSE_AFTER_SEGMENT:
+            self.assertIn(key, PRE_DBR_KEYS + POST_DBR_KEYS)
 
 
 class SchedulerTests(TestCase):
@@ -158,6 +166,7 @@ class SessionCompilerTests(TestCase):
             audio_cached_path=self.reading_audio,
         )
 
+    @patch("apps.guide.services.compiler.mix_background_music")
     @patch("apps.guide.services.compiler._run_ffmpeg_concat")
     @patch("apps.guide.services.compiler.session_audio_path")
     @patch("apps.guide.services.compiler.ensure_silence")
@@ -172,6 +181,7 @@ class SessionCompilerTests(TestCase):
         ensure_silence,
         session_audio_path_mock,
         run_ffmpeg_concat,
+        mix_background_music,
     ):
         from pathlib import Path
 
@@ -194,6 +204,12 @@ class SessionCompilerTests(TestCase):
 
         run_ffmpeg_concat.side_effect = write_output
 
+        def write_mixed(voice_path, output_path):
+            output_path.write_bytes(b"mixed")
+            return True
+
+        mix_background_music.side_effect = write_mixed
+
         topic_audio = Path(self.tmpdir) / "topic.mp3"
         topic_audio.write_bytes(b"mp3")
         PrayerTopic.objects.create(
@@ -215,3 +231,32 @@ class SessionCompilerTests(TestCase):
         self.assertEqual(session.playlist, [])
         self.assertTrue(output.exists())
         run_ffmpeg_concat.assert_called_once()
+        mix_background_music.assert_called_once()
+
+
+class BackgroundMusicTests(TestCase):
+    def test_bundled_track_exists(self):
+        from apps.guide.services.background_music import DEFAULT_BACKGROUND_MUSIC
+
+        self.assertTrue(DEFAULT_BACKGROUND_MUSIC.exists())
+
+    @patch("apps.guide.services.background_music.subprocess.run")
+    def test_mix_loops_background_under_voice(self, subprocess_run):
+        import tempfile
+        from pathlib import Path
+
+        from apps.guide.services.background_music import mix_background_music
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            voice = Path(tmpdir) / "voice.mp3"
+            output = Path(tmpdir) / "session.mp3"
+            voice.write_bytes(b"voice")
+            subprocess_run.return_value.returncode = 0
+
+            mixed = mix_background_music(voice, output)
+
+        self.assertTrue(mixed)
+        cmd = subprocess_run.call_args[0][0]
+        self.assertIn("-stream_loop", cmd)
+        self.assertIn("-1", cmd)
+        self.assertIn("amix", cmd[cmd.index("-filter_complex") + 1])

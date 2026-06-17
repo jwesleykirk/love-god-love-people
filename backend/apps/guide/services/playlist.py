@@ -7,15 +7,16 @@ from apps.dbr.models import ReadingDay
 from apps.guide.services.build_log import BuildLogger
 from apps.guide.services.paths import segment_path, topic_audio_path
 from apps.guide.services.segments import (
-    LITURGY_SEGMENTS,
-    PAUSE_AFTER_SEGMENT_KEYS,
+    LITURGY_BY_KEY,
+    PAUSE_AFTER_SEGMENT,
     POST_DBR_KEYS,
     PRE_DBR_KEYS,
+    TOPIC_PAUSE_SECONDS,
 )
-from apps.guide.services.silence import DEFAULT_PAUSE_SECONDS, ensure_silence
+from apps.guide.services.silence import ensure_silence
 from apps.prayer.models import PrayerTopic
 
-SEGMENT_TITLES = dict(LITURGY_SEGMENTS)
+SEGMENT_TITLES = {key: segment.title for key, segment in LITURGY_BY_KEY.items()}
 
 
 def _segment_clip(key: str) -> dict:
@@ -82,21 +83,28 @@ def _ensure_topic_audio(topic: PrayerTopic, log: BuildLogger) -> None:
     raise RuntimeError(f"Missing audio for prayer topic {topic.id}")
 
 
+def _append_segment_clips(clips: list[dict], keys: list[str], log: BuildLogger, pause_index: int) -> int:
+    for key in keys:
+        _ensure_segment(key, log)
+        clips.append(_segment_clip(key))
+        if key in PAUSE_AFTER_SEGMENT:
+            seconds = PAUSE_AFTER_SEGMENT[key]
+            ensure_silence(seconds)
+            clips.append(_pause_clip(seconds, pause_index))
+            pause_index += 1
+    return pause_index
+
+
 def build_session_playlist(
     reading: ReadingDay,
     topics: list[PrayerTopic],
     log: BuildLogger,
-    *,
-    pause_seconds: int = DEFAULT_PAUSE_SECONDS,
 ) -> list[dict]:
     """Return ordered clip metadata for lock-screen / in-app skip navigation."""
-    ensure_silence(pause_seconds)
     clips: list[dict] = []
     pause_index = 0
 
-    for key in PRE_DBR_KEYS:
-        _ensure_segment(key, log)
-        clips.append(_segment_clip(key))
+    pause_index = _append_segment_clips(clips, PRE_DBR_KEYS, log, pause_index)
 
     dbr_path = reading.audio_cached_path
     if not dbr_path or not Path(dbr_path).exists():
@@ -105,18 +113,14 @@ def build_session_playlist(
     log.ok("dbr_check", path=dbr_path, guid=reading.guid)
     clips.append(_dbr_clip(reading))
 
-    for key in POST_DBR_KEYS:
-        _ensure_segment(key, log)
-        clips.append(_segment_clip(key))
-        if key in PAUSE_AFTER_SEGMENT_KEYS:
-            clips.append(_pause_clip(pause_seconds, pause_index))
-            pause_index += 1
+    pause_index = _append_segment_clips(clips, POST_DBR_KEYS, log, pause_index)
 
     for index, topic in enumerate(topics):
         _ensure_topic_audio(topic, log)
         clips.append(_topic_clip(topic))
         if index < len(topics) - 1:
-            clips.append(_pause_clip(pause_seconds, pause_index))
+            ensure_silence(TOPIC_PAUSE_SECONDS)
+            clips.append(_pause_clip(TOPIC_PAUSE_SECONDS, pause_index))
             pause_index += 1
 
     log.ok("playlist", clip_count=len(clips))

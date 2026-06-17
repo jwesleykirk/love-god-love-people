@@ -13,6 +13,7 @@ from django.utils import timezone
 
 from apps.dbr.models import ReadingDay
 from apps.prayer.models import BuildStatus, PrayerLog, PrayerSession, PrayerTopic
+from apps.guide.services.background_music import mix_background_music
 from apps.guide.services.build_log import BuildLogger
 from apps.guide.services.paths import (
     segment_path,
@@ -20,8 +21,13 @@ from apps.guide.services.paths import (
     topic_audio_path,
 )
 from apps.guide.services.scheduler import select_topics_for_session
-from apps.guide.services.segments import PAUSE_AFTER_SEGMENT_KEYS, POST_DBR_KEYS, PRE_DBR_KEYS
-from apps.guide.services.silence import DEFAULT_PAUSE_SECONDS, ensure_silence
+from apps.guide.services.segments import (
+    PAUSE_AFTER_SEGMENT,
+    POST_DBR_KEYS,
+    PRE_DBR_KEYS,
+    TOPIC_PAUSE_SECONDS,
+)
+from apps.guide.services.silence import ensure_silence
 
 logger = logging.getLogger(__name__)
 
@@ -51,8 +57,19 @@ def _ensure_ffmpeg(log: BuildLogger) -> None:
         raise RuntimeError("ffmpeg not found on PATH")
 
 
-def _append_pause(audio_paths: list[Path], seconds: int = DEFAULT_PAUSE_SECONDS) -> None:
+def _append_pause(audio_paths: list[Path], seconds: int) -> None:
     audio_paths.append(ensure_silence(seconds))
+
+
+def _append_segment_audio(audio_paths: list[Path], keys: list[str], log: BuildLogger) -> None:
+    for key in keys:
+        path = segment_path(key)
+        if not path.exists():
+            log.error("segment_check", key=key, error="missing segment")
+            raise RuntimeError(f"Missing segment: {key}")
+        audio_paths.append(path)
+        if key in PAUSE_AFTER_SEGMENT:
+            _append_pause(audio_paths, PAUSE_AFTER_SEGMENT[key])
 
 
 def _ensure_topic_audio(topic: PrayerTopic, log: BuildLogger) -> Path:
@@ -101,30 +118,14 @@ def compile_session_for_owner(owner, session_date: date | None = None) -> Prayer
         log.ok("schedule", topic_count=len(topics), topic_ids=[t.id for t in topics])
 
         audio_paths: list[Path] = []
-        for key in PRE_DBR_KEYS:
-            path = segment_path(key)
-            if not path.exists():
-                log.error("segment_check", key=key, error="missing segment")
-                raise RuntimeError(f"Missing segment: {key}")
-            audio_paths.append(path)
-            if key in PAUSE_AFTER_SEGMENT_KEYS:
-                _append_pause(audio_paths)
-
+        _append_segment_audio(audio_paths, PRE_DBR_KEYS, log)
         audio_paths.append(Path(dbr_path))
-
-        for key in POST_DBR_KEYS:
-            path = segment_path(key)
-            if not path.exists():
-                log.error("segment_check", key=key, error="missing segment")
-                raise RuntimeError(f"Missing segment: {key}")
-            audio_paths.append(path)
-            if key in PAUSE_AFTER_SEGMENT_KEYS:
-                _append_pause(audio_paths)
+        _append_segment_audio(audio_paths, POST_DBR_KEYS, log)
 
         for index, topic in enumerate(topics):
             audio_paths.append(_ensure_topic_audio(topic, log))
             if index < len(topics) - 1:
-                _append_pause(audio_paths)
+                _append_pause(audio_paths, TOPIC_PAUSE_SECONDS)
 
         output = session_audio_path(session_date)
         with tempfile.NamedTemporaryFile("w", suffix=".txt", delete=False) as manifest_file:
@@ -132,11 +133,14 @@ def compile_session_for_owner(owner, session_date: date | None = None) -> Prayer
                 manifest_file.write(f"file '{path.resolve()}'\n")
             manifest = Path(manifest_file.name)
 
+        voice_tmp = output.with_suffix(".voice.mp3")
         try:
-            _run_ffmpeg_concat(manifest, output)
-            log.ok("ffmpeg", path=str(output))
+            _run_ffmpeg_concat(manifest, voice_tmp)
+            mixed = mix_background_music(voice_tmp, output)
+            log.ok("ffmpeg", path=str(output), background_music=mixed)
         finally:
             manifest.unlink(missing_ok=True)
+            voice_tmp.unlink(missing_ok=True)
 
         session.logs.all().delete()
         for topic in topics:

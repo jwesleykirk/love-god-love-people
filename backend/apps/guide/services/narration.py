@@ -18,11 +18,11 @@ def generate_liturgy_segments(force: bool = False) -> int:
         logger.info("Liturgy segment generation skipped: no ElevenLabs key")
         return 0
     count = 0
-    for key, text in LITURGY_SEGMENTS:
-        path = segment_path(key)
+    for segment in LITURGY_SEGMENTS:
+        path = segment_path(segment.key)
         if path.exists() and not force:
             continue
-        synthesize(text, path)
+        synthesize(segment.narration, path)
         count += 1
     return count
 

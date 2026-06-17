@@ -247,6 +247,8 @@ RAILWAY_VOLUME_PATH = env("RAILWAY_VOLUME_PATH", default="/data")
 BUILD_TIME_HOUR = env.int("BUILD_TIME_HOUR", default=3)
 DBR_INGEST_HOUR = env.int("DBR_INGEST_HOUR", default=2)
 GUIDE_OPS_TOKEN = env("GUIDE_OPS_TOKEN", default="")
+GUIDE_BACKGROUND_MUSIC_VOLUME = env.float("GUIDE_BACKGROUND_MUSIC_VOLUME", default=0.12)
+GUIDE_BACKGROUND_MUSIC_PATH = env("GUIDE_BACKGROUND_MUSIC_PATH", default="")
 
 # ---------------------------------------------------------------------------
 # Logging
