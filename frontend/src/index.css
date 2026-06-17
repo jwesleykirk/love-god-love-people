@@ -773,6 +773,7 @@ nav.bottom-nav .bn-pill {
   display: flex;
   align-items: center;
   justify-content: center;
+  color: var(--color-surface);
 }
 
 nav.bottom-nav a.active .bn-icon { stroke: var(--color-surface); }

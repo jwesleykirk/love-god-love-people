@@ -4,9 +4,10 @@ import path from "node:path";
 
 // Dev: Vite serves the SPA on http://localhost:5173 and proxies /api/* + /accounts/*
 // to Django on http://localhost:8000.
-// Build: writes the production bundle to frontend/dist/.
-export default defineConfig({
-  plugins: [react()],  base: '/static/',
+// Build: writes the production bundle to frontend/dist/ with base /static/ for Django.
+export default defineConfig(({ command }) => ({
+  plugins: [react()],
+  base: command === "build" ? "/static/" : "/",
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
@@ -23,4 +24,4 @@ export default defineConfig({
       "/accounts": { target: "http://localhost:8000", changeOrigin: true },
     },
   },
-});
+}));

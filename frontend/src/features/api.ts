@@ -80,8 +80,8 @@ export function saveGroup(data: Partial<Group>, id?: number) {
 }
 
 export function fetchTopics(params?: Record<string, string>) {
-  const qs = params ? `?${new URLSearchParams(params)}` : "";
-  return apiFetch<PrayerTopic[] | Paginated<PrayerTopic>>(`/api/prayer/topics/${qs}`).then(unwrapList);
+  const search = params ? `?${new URLSearchParams(params)}` : "";
+  return apiFetch<PrayerTopic[] | Paginated<PrayerTopic>>(`/api/prayer/topics/${search}`).then(unwrapList);
 }
 
 export function fetchTopic(id: number) {

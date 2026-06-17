@@ -19,13 +19,17 @@ export function PrayerListRoute() {
   const [topics, setTopics] = useState<PrayerTopic[]>([]);
   const [filter, setFilter] = useState<Filter>("all");
   const [query, setQuery] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const params: Record<string, string> = { active: "1" };
     if (filter === "person") params.has_person = "1";
     if (filter === "group") params.has_group = "1";
     if (filter === "general") params.general = "1";
-    void fetchTopics(params).then(setTopics);
+    setLoading(true);
+    void fetchTopics(params)
+      .then(setTopics)
+      .finally(() => setLoading(false));
   }, [filter]);
 
   const filtered = useMemo(() => {
@@ -81,7 +85,8 @@ export function PrayerListRoute() {
       </div>
 
       <div className="grouped-list">
-        {filtered.map((t) => (
+        {loading && <p className="muted" style={{ padding: 16 }}>Loading…</p>}
+        {!loading && filtered.map((t) => (
           <Link key={t.id} to={`/prayer/${t.id}`} className="grouped-list-row">
             <div style={{ flex: 1, minWidth: 0 }}>
               <div className="grouped-list-title">{t.narration_text || t.topic_text}</div>
@@ -92,7 +97,7 @@ export function PrayerListRoute() {
             </span>
           </Link>
         ))}
-        {filtered.length === 0 && (
+        {!loading && filtered.length === 0 && (
           <p className="muted" style={{ padding: 16 }}>No topics match.</p>
         )}
       </div>
