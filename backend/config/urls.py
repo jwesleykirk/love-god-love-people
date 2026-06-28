@@ -10,7 +10,7 @@ from django.contrib import admin
 from django.urls import include, path, re_path
 from django.views.generic import TemplateView
 
-from apps.accounts.views import me as accounts_me
+from apps.accounts.views import ios_auth_complete, me as accounts_me
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -22,6 +22,7 @@ urlpatterns = [
     path("api/guide/", include("apps.guide.urls")),
     path("api/auth/me/", accounts_me, name="auth-me"),
 
+    path("accounts/ios-auth-complete/", ios_auth_complete, name="ios-auth-complete"),
     path("accounts/", include("allauth.urls")),
 
     re_path(

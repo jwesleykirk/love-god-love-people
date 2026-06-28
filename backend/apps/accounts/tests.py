@@ -10,3 +10,10 @@ class MeEndpointTests(TestCase):
         payload = response.json()
         self.assertTrue(payload["authenticated"])
         self.assertIn("user", payload)
+
+
+class IOSAuthCompleteTests(TestCase):
+    def test_ios_auth_complete_redirects_to_custom_scheme(self):
+        response = self.client.get("/accounts/ios-auth-complete/")
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], "lglp://auth-complete")

@@ -1,6 +1,16 @@
-"""Account views — currently just /api/auth/me/."""
+"""Account views — /api/auth/me/ and native iOS OAuth handoff."""
 from django.conf import settings
-from django.http import HttpRequest, JsonResponse
+from django.http import HttpRequest, HttpResponse, JsonResponse
+
+IOS_AUTH_COMPLETE_PATH = "/accounts/ios-auth-complete/"
+IOS_LOGIN_PATH = f"/accounts/google/login/?next={IOS_AUTH_COMPLETE_PATH}"
+
+
+def ios_auth_complete(request: HttpRequest) -> HttpResponse:
+    """Return the native app after Google OAuth via custom URL scheme."""
+    response = HttpResponse(status=302)
+    response["Location"] = "lglp://auth-complete"
+    return response
 
 
 def me(request: HttpRequest) -> JsonResponse:
@@ -15,6 +25,7 @@ def me(request: HttpRequest) -> JsonResponse:
         "authenticated": authed,
         "auth_enabled": bool(getattr(settings, "ENABLE_AUTH", False)),
         "login_url": "/accounts/google/login/",
+        "ios_login_url": IOS_LOGIN_PATH,
         "logout_url": "/accounts/logout/",
     }
     if authed:
